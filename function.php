@@ -7,14 +7,15 @@
  */
 
 function bprint($arg) {
-//    if(is_array($arg)) print_r($arg);
-//    else print($arg);
-//    print("<br>");
+    if(is_array($arg)) print_r($arg);
+    else print($arg);
+    print("<br>");
 }
 
 function pprint($arg) {
     echo "<pre>";
     if(is_array($arg)) print_r($arg);
+    else print($arg);
     echo "</pre>";
 }
 

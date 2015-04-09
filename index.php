@@ -15,40 +15,41 @@
         include 'classes.php';
         $mysqlObj = new actionMySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
         $mysqlObj->setCharset('utf8');
-
         $parseObj = new actionParse("doc.xls");
-
         $parseObj->searchPlanAndCourseX();
-
         $parseObj->searchDisciple();
-
         $parseObj->searchCompetition();
-
         $dc = $parseObj->getDcLst();
 
-        if(isset($mysqlObj) && (isset($parseObj))) {
-            // comp = 1, disc = 1
-            // if you want ADD ФИЗИКА - ОК1
-            foreach($dc as $dis => $comp) {
-                $st = explode(" ", $comp);
-                bprint($dis ." : ". $comp);
-                // select on disciple
-                // new function
-//                function ()
-                $s1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis ="'.$dis .'"'];
-                $sRes = $mysqlObj->doSelectMySQL($s1);
-                if(count($sRes) == 1) {
-                    $sRes[0]['id_dis'];
-                        foreach($st as $k2 => $val2){
-                            print($dis .":". $val2);
-                            echo("<br>");
-                        }
-                    pprint($sRes);
-                } else {
+        /*if(isset($mysqlObj) && (isset($parseObj))) {
 
+            foreach($dc as $dis => $cs) {
+                $st = explode(" ", $cs);
+                $s1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis ="'.$dis .'"'];
+                $s1res = $mysqlObj->doSelectMySQL($s1);
+
+                if(count($s1res) > 0) {
+                    $id_dis = $s1res[0]['id_dis'];
+                } else {
+                    $i1 = ['table' => 'mcd_disciple', 'name_dis' => $dis];
+                    $mysqlObj->doInsertMySQL($i1);
+                }
+
+                foreach($st as $d => $c){
+                    $s2 = ['table'=>'mcd_competition', 'what' => 'id_comp', 'exp' => 'name_comp="' . $c . '"'];
+                    $s2res = $mysqlObj->doSelectMySQL($s2);
+
+                    if(count($s2res) > 0) {
+                        $id_comp = $s1res[0]['id_comp'];
+                    } else {
+                        $i2 = ['table' => 'mcd_competition', 'name_comp' =>  $c];
+                        $mysqlObj->doInsertMySQL($i2);
+                    }
                 }
             }
-        }
+        }*/
+
+        print($parseObj->addDsCompRel('Физика', 'ОК-1', $mysqlObj));
     ?>
 	
 </body>

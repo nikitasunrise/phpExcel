@@ -2,7 +2,7 @@
 
 class actionMySQL extends mysqli {
     private $hostname, $username, $password, $dbname, $mysqli;
-    private $fileLog = './sql_log.txt', $fileInput = './input_log.txt';
+    private $fileLog = './sql_log.html', $fileInput = './input_log.txt';
 
     public function __construct($hostname, $username, $password, $dbname)
     {
@@ -26,6 +26,12 @@ class actionMySQL extends mysqli {
         if (!$mysqli->set_charset($encoding)) {
             printf("Charset load failed: %s\n", $mysqli->error);
         }
+        if(is_readable($this->fileLog)) {
+            $h = fopen($this->fileLog, 'w');
+            $ss = "<html><head><meta charset='utf-8'></head>\r\n";
+            fwrite($h, $ss);
+            fclose($h);
+        }
     }
 
     private function addLog($type, $query, $result) {
@@ -33,7 +39,9 @@ class actionMySQL extends mysqli {
             $h = fopen($this->fileLog, 'a');
             switch($type) {
                 case 'select':
-                    $r = "Select was return " . count($result) . " rows.";
+                    if(is_array($result)) $a = count($result);
+                    else $a = 0;
+                    $r = "Select was return " . $a . " rows.";
                     break;
                 case 'insert':
                 case 'update':
@@ -42,8 +50,9 @@ class actionMySQL extends mysqli {
                     else $r = "Error returned";
                     break;
             }
-            $sS = date('Y-m-d H:i:s') .": ". $query. "\r\n Row result: " . $r;
-            fwrite($h, $sS. "\r\n\r\n");
+            $sS = date('Y-m-d H:i:s') .": ". $query. "\r\n<br> Row result: " . $r;
+
+            fwrite($h, $sS. "\r\n\r\n<br><br>");
             fclose($h);
         }
     }
@@ -75,6 +84,9 @@ class actionMySQL extends mysqli {
             {
                 $this->addLog('select', $query, $arrData);
                 return $arrData;
+            } else
+            {
+                $this->addLog('select', $query, '');
             }
         }
     }
@@ -105,7 +117,7 @@ class actionMySQL extends mysqli {
         //echo $strKey . "<br>" . $strVal . "<br>";
         #generate query string with all parameters
         $query = "INSERT INTO " . $tableName . " (" . $strKey . ")" . " VALUES " . "(" . $strVal. ")";
-        echo $query;
+        //echo $query;
 
         if ($result = $mysqli->query($query)) {
             $this->addLog('insert', $query, $result);
@@ -473,6 +485,30 @@ class actionParse {
     public function getHoursLst()
     {
         return $this->hoursLst;
+    }
+
+    public function addDsCompRel($disciple, $competiton, $mysqlObj) {
+        // test connection
+        if($mysqlObj) {
+            // it work
+            $sc1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis="' . $disciple . '"'];
+            $sc2 = ['table' => 'mcd_competition', 'what' => 'id_comp', 'exp' => 'name_comp="' . $competiton . '"'];
+            if(count($r1 = $mysqlObj->doSelectMySQL($sc1)) > 0) {
+                // disciple unique
+                $id_dis = $r1[0]['id_dis'];
+                bprint($id_dis);
+            }
+            if(count($r2 = $mysqlObj->doSelectMySQL($sc2)) > 0) {
+                // disciple unique
+                $id_comp = $r2[0]['id_comp'];
+                bprint($id_comp);
+            }
+            if(isset($id_dis) && isset($id_comp)) {
+                $i = ['table' => 'mcd_dc', 'id_dis' => $id_dis, 'id_comp' => $id_comp];
+                if($r = $mysqlObj->doInsertMySQL($i)) return 1;
+                else return 0;
+            }
+        } else return 0;
     }
 }
 ?>
