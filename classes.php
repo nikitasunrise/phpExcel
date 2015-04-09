@@ -33,21 +33,27 @@ class actionMySQL extends mysqli {
             $h = fopen($this->fileLog, 'a');
             switch($type) {
                 case 'select':
-                    $result = "Select was return" . $result->num_rows . "rows.";
+                    $r = "Select was return " . count($result) . " rows.";
                     break;
                 case 'insert':
                 case 'update':
                 case 'delete':
-                    if($result==1) $result = "Success returned";
-                    else $result = "Error returned";
+                    if($result == 1) $r = "Success returned";
+                    else $r = "Error returned";
                     break;
             }
-            $sS = date('Y-m-d H:i:s') .": ". $query. "\r\n Row result:" . $result;
+            $sS = date('Y-m-d H:i:s') .": ". $query. "\r\n Row result: " . $r;
             fwrite($h, $sS. "\r\n\r\n");
-            return ($result->close()) ? fclose($h) : 0;
+            fclose($h);
         }
     }
 
+    /**
+     * @param array $tableVal
+     * ('table' => 'name_table', 'what' => 'values_of_query', 'exp' => 'expression')
+     * @return array
+     *
+     */
     public function doSelectMySQL($tableVal = array()) {
         $mysqli = $this->mysqli;
         #check function parameter
@@ -61,12 +67,15 @@ class actionMySQL extends mysqli {
 
         #print of results row
         if ($result = $mysqli->query($query)) {
-            $this->addLog('select', $query, $result);
             while ($row = $result->fetch_assoc()){
                 $arrData[] = $row;
                 //echo "<br>";
             }
-            if (isset($arrData)) return $arrData;
+            if (isset($arrData))
+            {
+                $this->addLog('select', $query, $arrData);
+                return $arrData;
+            }
         }
     }
 

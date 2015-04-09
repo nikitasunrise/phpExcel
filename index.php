@@ -17,12 +17,19 @@
         $mysqlObj->setCharset('utf8');
 
         $parseObj = new actionParse("doc.xls");
+
         $parseObj->searchPlanAndCourseX();
+
         $parseObj->searchDisciple();
+
         $parseObj->searchCompetition();
-        echo("<pre>");
-        print_r($parseObj->getDcLst());
-        echo("</pre>");
+
+
+        if(isset($mysqlObj) && (isset($parseObj))) {
+            $se = array('table' => 'mcd_disciple', 'what'=> '*', 'exp' => 'TRUE');
+            $res = $mysqlObj->doSelectMySQL($se);
+            var_dump($res);
+        }
     ?>
 	
 </body>
