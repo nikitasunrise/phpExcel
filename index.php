@@ -24,11 +24,30 @@
 
         $parseObj->searchCompetition();
 
+        $dc = $parseObj->getDcLst();
 
         if(isset($mysqlObj) && (isset($parseObj))) {
-            $se = array('table' => 'mcd_disciple', 'what'=> '*', 'exp' => 'TRUE');
-            $res = $mysqlObj->doSelectMySQL($se);
-            var_dump($res);
+            // comp = 1, disc = 1
+            // if you want ADD ФИЗИКА - ОК1
+            foreach($dc as $dis => $comp) {
+                $st = explode(" ", $comp);
+                bprint($dis ." : ". $comp);
+                // select on disciple
+                // new function
+//                function ()
+                $s1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis ="'.$dis .'"'];
+                $sRes = $mysqlObj->doSelectMySQL($s1);
+                if(count($sRes) == 1) {
+                    $sRes[0]['id_dis'];
+                        foreach($st as $k2 => $val2){
+                            print($dis .":". $val2);
+                            echo("<br>");
+                        }
+                    pprint($sRes);
+                } else {
+
+                }
+            }
         }
     ?>
 	
