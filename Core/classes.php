@@ -237,20 +237,30 @@ class actionParse {
     protected $docSheets, $crsLst, $plnLst, $dsLst, $dcLst, $udcLst;//
 
     public function __construct($document) {
-        include_once ('Classes/PHPExcel/IOFactory.php');
-        include_once ("Classes/PHPExcel.php");
+        include_once('../Classes/PHPExcel/IOFactory.php');
+        include_once("../Classes/PHPExcel.php");
         $this->docSrc = $document;
 
-        if (!empty($document)) {
-            $objR = PHPExcel_IOFactory::createReader('Excel5');
-            $objR->setReadDataOnly(true);
-            $objXl = $objR->load("doc.xls");
-            $cntList = $objXl->getSheetCount();
+        try {
+            if (!empty($document)) {
+                switch(pathinfo($document, PATHINFO_EXTENSION)) {
+                    case "xls":
+                        $objR = PHPExcel_IOFactory::createReader('Excel5');
+                        break;
+                    case "xlsx":
+                        $objR = PHPExcel_IOFactory::createReader('Excel2007');
+                        break;
+                }
+                $objR->setReadDataOnly(true);
+                $objXl = $objR->load($document);
+                $cntList = $objXl->getSheetCount();
 
-            $this->cntList = $cntList;
-            $this->objReader = $objR;
-            $this->objExcel = $objXl;
-            $this->docSheets = $objXl->getSheetNames();
+                $this->cntList = $cntList;
+                $this->objReader = $objR;
+                $this->objExcel = $objXl;
+                $this->docSheets = $objXl->getSheetNames();
+            }
+        } catch (PHPExcel_Reader_Exception $e) {
         }
     }
 
