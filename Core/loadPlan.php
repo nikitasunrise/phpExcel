@@ -2,7 +2,7 @@
     header('Content-Type: text/html; charset=utf-8');
     // check file load
     require 'function.php';
-    include 'classes.php';
+    include 'action.php';
     $fName = basename($_FILES['filename']['name']);
     $uploadDir = '../Document/';
     $uploadFile = $uploadDir . $fName;

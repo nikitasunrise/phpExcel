@@ -11,17 +11,19 @@
 
         include 'Core/function.php';
         include 'Core/config.php';
-        include 'Core/classes.php';
-        require_once 'Core/office.php';
+        include 'Core/action.php';
+        //require_once 'Core/office.php';
 
-        $mysqlObj = new actionMySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        $mysqlObj->setCharset('utf8');
-        $parseObj = new actionParse("Document/doc.xls");
-        $parseObj->searchPlanAndCourseX();
-        $parseObj->searchDisciple();
-        $parseObj->searchCompetition();
-        $dc = $parseObj->getDcLst();
+     //   $mysqlObj = new actionMySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    //    $mysqlObj->setCharset('utf8');
 
+        $parseObj = new actionParse("../Document/doc.xls");
+        echo($parseObj->getCntList());
+//    $parseObj->searchPlanAndCourseX();
+//        $parseObj->searchDisciple();
+//        $parseObj->searchCompetition();
+//        $dc = $parseObj->getDcLst();
+/*
         if(isset($mysqlObj) && (isset($parseObj))) {
             foreach($dc as $dis => $cs) {
                 $st = explode(" ", $cs);
@@ -47,7 +49,7 @@
                     }
                 }
             }
-        }
+        }*/
 
 //        print($parseObj->addDsCompRel('Физика', 'ОК-1', $mysqlObj));
     ?>

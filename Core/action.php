@@ -2,7 +2,7 @@
 
 class actionMySQL extends mysqli {
     private $hostname, $username, $password, $dbname, $mysqli;
-    private $fileLog = './sql_log.html', $fileInput = './input_log.txt';
+    private $fileLog = '../sql_log.html';
 
     public function __construct($hostname, $username, $password, $dbname)
     {
@@ -17,8 +17,6 @@ class actionMySQL extends mysqli {
         $this->mysqli = $mysqli;
 
         (!file_exists($this->fileLog)) ? fopen($this->fileLog, 'x') : '';
-        (!file_exists($this->fileInput)) ? fopen($this->fileInput, 'x') : '';
-
     }
 
     public function setCharset($encoding) {
@@ -235,20 +233,31 @@ class actionParse {
                         10 => 'TypeExamine'];
     private $hoursLst;
     protected $docSheets, $crsLst, $plnLst, $dsLst, $dcLst, $udcLst;//
+    public  $fileLog = './input_log.html';
 
     public function __construct($document) {
-        include_once('../Classes/PHPExcel/IOFactory.php');
-        include_once("../Classes/PHPExcel.php");
+        include_once('Classes/PHPExcel/IOFactory.php');
+        include_once('Classes/PHPExcel.php');
         $this->docSrc = $document;
 
+        (!file_exists($this->fileLog)) ? fopen($this->fileLog, 'x') : '';
+        if(is_readable($this->fileLog)) {
+            $h = fopen($this->fileLog, 'w');
+            $ss = "<html><head><meta charset='utf-8'><link href='Style/style.css' rel='stylesheet'></head>\r\n";
+            fwrite($h, $ss);
+            fclose($h);
+        }
         try {
             if (!empty($document)) {
                 switch(pathinfo($document, PATHINFO_EXTENSION)) {
-                    case "xls":
+                    case 'xls':
                         $objR = PHPExcel_IOFactory::createReader('Excel5');
                         break;
-                    case "xlsx":
+                    case 'xlsx':
                         $objR = PHPExcel_IOFactory::createReader('Excel2007');
+                        break;
+                    default:
+                        throw new PHPExcel_Reader_Exception;
                         break;
                 }
                 $objR->setReadDataOnly(true);
@@ -259,8 +268,31 @@ class actionParse {
                 $this->objReader = $objR;
                 $this->objExcel = $objXl;
                 $this->docSheets = $objXl->getSheetNames();
+                $this->loggingWork("Расширение документа", 1);
             }
         } catch (PHPExcel_Reader_Exception $e) {
+            $this->loggingWork("Расширение документа", -1);
+        }
+    }
+
+    private function loggingWork($string, $status) {
+        if(is_readable($this->fileLog)) {
+            $h = fopen($this->fileLog, 'a');
+            switch($status) {
+                case 0:
+                    # status empty
+                    $st = '';
+                    break;
+                case 1:
+                    $st = "<span class='scStat'>Success</span>";
+                    break;
+                case -1:
+                    $st = "<span class='erStat'>Error</span>";
+                    break;
+            }
+            $sS = "<p class='lg'>". $string. "... " . $st . "</p>";
+            //fwrite($h, $sS. "\r\n");
+            fclose($h);
         }
     }
 
@@ -290,8 +322,12 @@ class actionParse {
         if(!empty($plnLst) && (!empty($crsLst))) {
             $this->crsLst = $crsLst;
             $this->plnLst = $plnLst;
+            $this->loggingWork("Поиск листов 'План' и 'Курс'", 1);
             return 1;
-        } else return 0;
+        } else {
+            $this->loggingWork("Поиск листов 'План' и 'Курс'", -1);
+            return 0;
+        }
     }
 
     /**
@@ -301,6 +337,7 @@ class actionParse {
     public function searchDisciple() {
         $crsLst = $this->crsLst;
         $nArr = $this->nArr;
+        $this->loggingWork("Поиск дисциплин", 0);
         foreach ($crsLst as $num => $value) {
             $this->objExcel->setActiveSheetIndex($num);
             $objActSh = $this->objExcel->getActiveSheet();
@@ -308,9 +345,11 @@ class actionParse {
 
             if (substr($value, -1) == substr($cVal, -1)) {
                 $currCrs = substr($cVal, -1);
+                $this->loggingWork("Курс ".$value, 1);
                 //bprint("Course is equal");
                 $event = 1;
             } else {
+                $this->loggingWork("Курс ".$value, -1);
                 //bprint("Course is not equal");
             }
             // find the disciples
@@ -323,8 +362,10 @@ class actionParse {
                     for ($col=0; $col <= $hCindex; ++$col) {
                         $temp = $objActSh->getCellByColumnAndRow($col, $row);
                         if ($temp == 'Дисциплина') {
+                            $this->loggingWork("Поиск ячейки 'Дисциплина'", 1);
                             $dnRow = $row;
                             $dnCol = $col;
+                            break;
                         }
                     }
                 }
@@ -339,26 +380,23 @@ class actionParse {
                     $currDn = $objActSh->getCellByColumnAndRow($dnCol, $dnRow+$it);
                     $currBlDn = $objActSh->getCellByColumnAndRow($dnCol-1, $dnRow+$it);
                     $currDn = (string)$currDn;
-                    //bprint("<li>" . $currDn . "</li>");
+                    $this->loggingWork("Дисциплина " . $currDn, 1);
 
                     for ($tC=0; $tC < 2; $tC++) {
-//                        if ($tC == 0) bprint("Spring: ");
-//                        if ($tC == 1) bprint("Autumn: ");
-
                         for ($i=1; $i <= 10; $i++) {
                             $k = $tC*10+$i;
                             $c = $objActSh->getCellByColumnAndRow($dnCol+$k, $dnRow+$it);
                             $cVal = $c->getValue();
 
                             if (($cVal != 0) || ($cVal != '')) {
-                               // bprint($nArr[$i]. ": ". $c);
                                 $hArr[$currDn][$currCrs . $tC][$nArr[$i]] = $cVal;
-                               // bprint("&nbsp&nbsp&nbsp");
                             } elseif ($cVal == 0) {
-                                $hArr[$currDn][$currCrs . $tC][$nArr[$i]] = $cVal;
+                                $hArr[$currDn][$currCrs . $tC][$nArr[$i]] = 0;
                             }
                         }
                     }
+
+//                    $hArr[$currDn]
                     // check hour
 //					for ($i=1; $i <= 5; $i++) {
 //						$c = $objActSheet->getCellByColumnAndRow($dnCol+20+$i, $dnRow+$it);
@@ -374,10 +412,14 @@ class actionParse {
         }
 
         if (!empty($hArr) && isset($hArr)) {
+            $this->loggingWork("Проверка часов дисциплин", 1);
             $this->hoursLst = $hArr;
+
             return 1;
+        } else {
+            $this->loggingWork("Проверка часов дисциплин", -1);
+            return 0;
         }
-        else return 0;
     }
 
     /**

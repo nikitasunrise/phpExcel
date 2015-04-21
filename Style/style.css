@@ -61,7 +61,17 @@ body > div, body > div > div{
     width: 100px;
     height: 25px;
 }
-
+.erStat {
+    background-color: red;
+}
+.scStat {
+    background-color: green;
+}
+.lg {
+    font-family: Verdana;
+    font-size: 12pt;
+    margin: 10px;
+}
 .hS {
     margin: 10px 350px;
 }
