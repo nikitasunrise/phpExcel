@@ -16,7 +16,7 @@
 
     if(is_uploaded_file($_FILES['filename']['tmp_name'])) {
         move_uploaded_file($_FILES['filename']['tmp_name'], $uploadFile);
-        $newFile =  md5($fName) . "." .pathinfo($uploadFile, PATHINFO_EXTENSION);
+        $newFile =  md5($fName) . "." . pathinfo($uploadFile, PATHINFO_EXTENSION);
         rename($uploadFile, $uploadDir . $newFile);
     } else {
         echo('0');

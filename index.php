@@ -1,18 +1,20 @@
-<html>
-<head>
-    <meta content="text/html" charset="utf-8">
-    <title>PHPExcel</title>
-</head>
-<body>
-<h1>Parse of XLS file</h1>
+<html><head><meta charset='utf-8'></head>
+
 <?php
+include 'Core/action.php';
+include 'Core/function.php';
+include 'Core/config.php';
 
-//include 'HTML/template.html';
-include_once 'Core/function.php';
-include_once 'Core/config.php';
-include_once 'Core/action.php';
+//$mysqlObj = new actionMySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+//$mysqlObj->setCharset('utf8');
+////pprint($mysqlObj->getListTables());
+//$prsObj = new actionParse("Document/doc.xls");
+//echo ($prsObj->searchPlanAndCourseX());
+//
+//echo ($prsObj->searchDisciple());
+//echo ($prsObj->searchCompetition());
+////all right, stupid dick
+//pprint($prsObj->getHoursLst());
+//pprint ($prsObj->getDcLst());
 
-$prsObj = new actionParse("Document/doc.xls");
-
-echo ($prsObj->searchPlanAndCourseX());
-echo ($prsObj->searchDisciple());
+include 'HTML/template.html';

@@ -4,21 +4,22 @@
     <noscript>Enable JS or change Browser</noscript>
     <link href="Style/style.css" rel="stylesheet">
     <meta charset="utf-8">
-    <title></title>
+    <title> WSP </title>
 </head>
 <body>
 <div id="tB">
-    <button class="btnBl leftB col2 clear">На главную</button>
+    <a href= '<?php echo(RQ_DEF) ?>' ><button class="btnBl leftB col2 clear">На главную</button></a>
     <button class="btnBl rightB col2 clear">Личный кабинет</button>
 </div>
 <div id="mB">
     <div id="hmB" align="center">
-        <h2 class="">Заголовок сайта</h2>
+        <span>
+            <a href=""><button class="btnGr leftB col3 clear" type="reset">Назад</button></a>
+        </span>
+        <h2 id="hM" align="center">Заголовок сайта</h2>
     </div>
     <div id="cmB" align="center">
-        <!--<?php include 'HTML/maincontent.html' ?>-->
-        <!--<?php include 'HTML/createPlan.html' ?>-->
-        <!--<?php include 'HTML/loadPlan.html' ?>-->
+        <?php include 'Core/getContent.php' ?>
     </div>
 </div>
 </body>

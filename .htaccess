@@ -8,3 +8,11 @@ php_value memory_limit 256M
 #AuthGroupFile /home/u195200621/public_html
 #AuthUserFile /home/u195200621/public_html/.htpasswd
 #Require valid-user
+
+RewriteEngine On
+# перенаправление на страницу юзера
+
+RewriteCond %{SCRIPT_FILENAME} !-d
+RewriteCond %{SCRIPT_FILENAME} !-f
+RewriteRule ^(.*)$ index.php?action=$0 [QSA]
+

@@ -1,6 +1,10 @@
 <?php
+session_start();
+set_time_limit(60);
 error_reporting(0);
+$_SESSION['lastRef'] = [];
 
+define('RQ_DEF', '/phpexcel/');
 define('TIME_NOW', date('Y-m-d H:i:s'));
 
 define('CHARSET', 'utf-8');

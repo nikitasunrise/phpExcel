@@ -2,7 +2,7 @@
 
 class actionMySQL extends mysqli {
     private $hostname, $username, $password, $dbname, $mysqli;
-    private $fileLog = '../sql_log.html';
+    private $fileLog = 'sql_log.html';
 
     public function __construct($hostname, $username, $password, $dbname)
     {
@@ -233,7 +233,7 @@ class actionParse {
                         10 => 'TypeExamine'];
     private $hoursLst;
     protected $docSheets, $crsLst, $plnLst, $dsLst, $dcLst, $udcLst;//
-    public  $fileLog = './input_log.html';
+    private $fileLog = 'input_log.html';
 
     public function __construct($document) {
         include_once('Classes/PHPExcel/IOFactory.php');
@@ -290,9 +290,13 @@ class actionParse {
                     $st = "<span class='erStat'>Error</span>";
                     break;
             }
-            $sS = "<p class='lg'>". $string. "... " . $st . "</p>";
-            //fwrite($h, $sS. "\r\n");
-            fclose($h);
+            try {
+                $sS = "<p class='lg'>". $string. "... " . $st . "</p>";
+                fwrite($h, $sS . "\r\n");
+                fclose($h);
+            } catch (Exception $e) {
+                pprint($e);
+            }
         }
     }
 
@@ -315,11 +319,11 @@ class actionParse {
         foreach ($sheets as $num => $sheet) {
             preg_match($re, $sheet, $match);
             preg_match($re2, $sheet, $match2);
-
             if (isset($match) && (!empty($match))) $crsLst[$num] = $sheet;
             if (isset($match2) && (!empty($match2))) $plnLst[$num] = $sheet;
         }
         if(!empty($plnLst) && (!empty($crsLst))) {
+
             $this->crsLst = $crsLst;
             $this->plnLst = $plnLst;
             $this->loggingWork("Поиск листов 'План' и 'Курс'", 1);
@@ -345,11 +349,11 @@ class actionParse {
 
             if (substr($value, -1) == substr($cVal, -1)) {
                 $currCrs = substr($cVal, -1);
-                $this->loggingWork("Курс ".$value, 1);
+                $this->loggingWork("Текущий курс: ".$value, 1);
                 //bprint("Course is equal");
                 $event = 1;
             } else {
-                $this->loggingWork("Курс ".$value, -1);
+                $this->loggingWork("Текущий курс: ".$value, -1);
                 //bprint("Course is not equal");
             }
             // find the disciples
@@ -362,7 +366,7 @@ class actionParse {
                     for ($col=0; $col <= $hCindex; ++$col) {
                         $temp = $objActSh->getCellByColumnAndRow($col, $row);
                         if ($temp == 'Дисциплина') {
-                            $this->loggingWork("Поиск ячейки 'Дисциплина'", 1);
+                            //$this->loggingWork("Поиск ячейки 'Дисциплина'", 1);
                             $dnRow = $row;
                             $dnCol = $col;
                             break;
@@ -372,15 +376,17 @@ class actionParse {
             }
             // find the contain disciples
             if (isset($dnCol) && isset($dnRow)) {
-                //bprint($objActSh->getCellByColumnAndRow($dnCol, $dnRow));
-                //bprint("(".$dnCol."x".$dnRow.")");
+
                 $it = 3;
+                $objActSh->getCellByColumnAndRow($dnCol, $dnRow+$it) == '' ? $sign = -1 : $sign = 1;
+                $this->loggingWork("Наличие дисцилин", $sign);
 
                 while ($objActSh->getCellByColumnAndRow($dnCol, $dnRow+$it) != '') {
                     $currDn = $objActSh->getCellByColumnAndRow($dnCol, $dnRow+$it);
                     $currBlDn = $objActSh->getCellByColumnAndRow($dnCol-1, $dnRow+$it);
                     $currDn = (string)$currDn;
-                    $this->loggingWork("Дисциплина " . $currDn, 1);
+                    $currDn == '' ? $sign = -1 : $sign = 1;
+                    $this->loggingWork("Дисциплина " . "<b>". $currDn . "</b>", $sign);
 
                     for ($tC=0; $tC < 2; $tC++) {
                         for ($i=1; $i <= 10; $i++) {
@@ -396,25 +402,44 @@ class actionParse {
                         }
                     }
 
-//                    $hArr[$currDn]
-                    // check hour
-//					for ($i=1; $i <= 5; $i++) {
-//						$c = $objActSheet->getCellByColumnAndRow($dnCol+20+$i, $dnRow+$it);
-//						$s = $hArr[0][$nArr[5-1+$i]] + $hArr[1][$nArr[5-1+$i]];
-//
-//						if ($s == $c->getValue()) {
-//							bprint("Summ is right:" . $nArr[5-1+$i] . "\r\n");
-//						}
-//					}
+                    for ($tC=0; $tC < 2; $tC++) {
+                        $summ=0;
+                        $st=0;
+                        $tot=0;
+                        ($tC == 0) ? ($t = 'Осень') : ($t = 'Весна');
+
+                        for ($i=1; $i < 5; $i++) {
+                            $summ += $hArr[$currDn][$currCrs.$tC][$nArr[$i]];
+                        }
+                        if ($summ != $hArr[$currDn][$currCrs.$tC][$nArr[5]]) {
+                            $this->loggingWork("Аудиторные часы, семестр " . $t, -1);
+                        }
+                        $st = $hArr[$currDn][$currCrs.$tC][$nArr[5]] + $hArr[$currDn][$currCrs.$tC][$nArr[6]];
+
+                        if ($st != $hArr[$currDn][$currCrs.$tC][$nArr[7]]) {
+                            $this->loggingWork("Часов изучено, семестр " . $t, -1);
+                        }
+                        $tot = $hArr[$currDn][$currCrs.$tC][$nArr[7]] + $hArr[$currDn][$currCrs.$tC][$nArr[8]];
+
+                        if ($tot != $hArr[$currDn][$currCrs.$tC][$nArr[9]]) {
+                            $this->loggingWork("Итого, семестр " . $t, -1);
+                        } else {
+                            $this->loggingWork("Итого, семестр " . $t, 1);
+                        }
+                    }
                     $it++;
                 }
+
+
             }
+            else {
+            }
+
         }
 
         if (!empty($hArr) && isset($hArr)) {
             $this->loggingWork("Проверка часов дисциплин", 1);
             $this->hoursLst = $hArr;
-
             return 1;
         } else {
             $this->loggingWork("Проверка часов дисциплин", -1);
@@ -562,5 +587,74 @@ class actionParse {
             }
         } else return 0;
     }
+
+    public function addDiscAndComp($mysqlObj, $disciples) {
+        if(isset($mysqlObj)) {
+            foreach($disciples as $dis => $cs) {
+                $st = explode(" ", $cs);
+                $s1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis ="'.$dis .'"'];
+                $s1res = $mysqlObj->doSelectMySQL($s1);
+
+                if(count($s1res) > 0) {
+                    $id_dis = $s1res[0]['id_dis'];
+                } else {
+                    $i1 = ['table' => 'mcd_disciple', 'name_dis' => $dis];
+                    $mysqlObj->doInsertMySQL($i1);
+                }
+                foreach($st as $d => $c){
+                    $s2 = ['table'=>'mcd_competition', 'what' => 'id_comp', 'exp' => 'name_comp="' . $c . '"'];
+                    $s2res = $mysqlObj->doSelectMySQL($s2);
+
+                    if(count($s2res) > 0) {
+                        $id_comp = $s1res[0]['id_comp'];
+                    } else {
+                        $i2 = ['table' => 'mcd_competition', 'name_comp' =>  $c];
+                        $mysqlObj->doInsertMySQL($i2);
+                    }
+                }
+            }
+            return 1;
+        } else return 0;
+    }
+
+    public function addHourList($hourList, $mysqlObj) {
+        //query dis
+        if (!empty($hourList) && isset($mysqlObj)) {
+            foreach ($hourList as $dis => $cont) {
+                $s1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis ="'. $dis .'"'];
+                $s1res = $mysqlObj->doSelectMySQL($s1);
+
+                if(count($s1res) > 0) {
+                    $id_dis = $s1res[0]['id_dis'];
+                    foreach ($cont as $term => $hours) {
+                        // 'Auditory' == 'Lection' + 'Laboratory' + 'Practice' + 'ControlWork'
+                        // 'Study' == 'Auditory' + 'IndepWork'
+                        // 'Total' == 'Study' + 'Examine'
+                        $i1 = ['table' => 'mcd_wsp_ds',
+                                'id_wsp' => '',
+                                'id_ds' => '',
+                                'term' => $term[1],
+                                'course' => $term[0],
+                                'h_lect' => $hours['Lection'],
+                                'h_lab' => $hours['Laboratory'],
+                                'h_pract' => $hours['Practice'],
+                                'h_control' => $hours['ControlWork'],
+                                'h_indep' => $hours['IndepWork'],
+                                'h_exam' => $hours['Examiine'],
+                                'type_exam' => $hours['TypeExamine']
+                        ];
+                        if ($mysqlObj->doInsertMySQL($i1)) return 1;
+                        else return 0;
+                    }
+                } else {
+                    //disciple does not exist
+                    return 0;
+                }
+            }
+        } else return 0;
+        //check and add
+    }
+
 }
+
 ?>
