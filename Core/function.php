@@ -30,3 +30,25 @@ function showDir() {
     }
     return $listFile;
 }
+
+function getSelect($type = '') {
+    include_once 'actionMySQL.php';
+    $ms = new actionMySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    switch($type) {
+        case 'form_st':
+            //$arr = ['очная', 'заочная'];
+            break;
+        case 'qual';
+            //$arr = ['бакалавр', 'специалист'];
+            break;
+        case 'profile';
+            //$arr = ['Программное обеспечение средств вычислителной техники',
+              //      'Программная инженерия'];
+    }
+    foreach($arr as $value) {
+        $str .= '<option>';
+        $str .= $value;
+        $str .= '</option>';
+    }
+    return $str;
+}

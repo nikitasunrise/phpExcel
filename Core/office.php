@@ -1,17 +1,13 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Никита
- * Date: 10.04.15
- * Time: 23:20
- */
+//include 'Core/actionMySQL.php';
+include 'Core/function.php';
+//include 'Core/config.php';
 
-require_once '../PhpWord/Autoloader.php';
+require_once 'PhpWord/Autoloader.php';
+require_once 'PhpWord/PhpWord.php';
 \PhpOffice\PhpWord\Autoloader::register();
-require_once '../PhpWord/PhpWord.php';
 
-$phpWord = new \PhpOffice\PhpWord\PhpWord();
-$doc = $phpWord->loadTemplate('');
-$doc->setValue('qwe', '11');
-$doc->saveAs('');
-var_dump($doc);
+$doc = new \PhpOffice\PhpWord\TemplateProcessor('Document/program.docx');
+$doc->cloneBlock('ccv', 3);
+$doc->saveAs('p.docx');
+include 'HTML/template.html';

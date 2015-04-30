@@ -1,0 +1,45 @@
+<div align="center">
+    <h3>Создание Рабочего Учебного Плана</h3>
+    <?php include 'function.php'; ?>
+    <form action="#" method="post">
+        <div id="bsI">
+            <span class="spC">
+                <h5><b>I. </b>Выберите квалификацию</h5>
+                <select id="qSt" class="selS">
+                    <?php print(getSelect('qual')) ?>
+                </select>
+            </span>
+
+            <span class="spC">
+                <h5><b>II. </b>Выберите форму обучения и введите срок обучения (лет)</h5>
+                <select id="fSt" class="selS">
+                    <?php print(getSelect('form_st')) ?>
+                </select>
+                <input type="text" id="cntCrs" name="cntCrs">
+            </span>
+
+            <span class="spC">
+                <h5><b>III. </b>Выберите профиль обучения</h5>
+                <select id="" class="selS">
+                    <?php print(getSelect('profile'))?>
+                </select>
+            </span>
+        </div> <br>
+        <div id="dsI">
+            <h5><b>IV. </b>Выберите необходимые дисциплины</h5>
+            <div id="srcDs" class="bsB leftB">
+            </div>
+            <div id="selDs" class="bsB rightB">
+            </div>
+            <div id="btnS" class="clear">
+                <button class="btnGr mini"> > </button>
+                <button class="btnGr mini"> >> </button>
+                <button class="btnGr mini"> < </button>
+                <button class="btnGr mini"> << </button>
+            </div>
+            <div id="dsInf">
+
+            </div>
+        </div>
+    </form>
+</div>

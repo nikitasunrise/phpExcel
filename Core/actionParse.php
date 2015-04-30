@@ -1,212 +1,6 @@
 <?php
-
-class actionMySQL extends mysqli {
-    private $hostname, $username, $password, $dbname, $mysqli;
-    private $fileLog = 'sql_log.html';
-
-    public function __construct($hostname, $username, $password, $dbname)
-    {
-        $mysqli = new mysqli($hostname, $username, $password, $dbname);
-        if ($mysqli->connect_error) {
-            die('Ошибка подключения (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
-        }
-        $this->hostname = $hostname;
-        $this->username = $username;
-        $this->password = $password;
-        $this->dbname = $dbname;
-        $this->mysqli = $mysqli;
-
-        (!file_exists($this->fileLog)) ? fopen($this->fileLog, 'x') : '';
-    }
-
-    public function setCharset($encoding) {
-        $mysqli = $this->mysqli;
-        if (!$mysqli->set_charset($encoding)) {
-            printf("Charset load failed: %s\n", $mysqli->error);
-        }
-        if(is_readable($this->fileLog)) {
-            $h = fopen($this->fileLog, 'w');
-            $ss = "<html><head><meta charset='utf-8'></head>\r\n";
-            fwrite($h, $ss);
-            fclose($h);
-        }
-    }
-
-    private function addLog($type, $query, $result) {
-        if(is_readable($this->fileLog)) {
-            $h = fopen($this->fileLog, 'a');
-            switch($type) {
-                case 'select':
-                    if(is_array($result)) $a = count($result);
-                    else $a = 0;
-                    $r = "Select was return " . $a . " rows.";
-                    break;
-                case 'insert':
-                case 'update':
-                case 'delete':
-                    if($result == 1) $r = "Success returned";
-                    else $r = "Error returned";
-                    break;
-            }
-            $sS = date('Y-m-d H:i:s') .": ". $query. "\r\n<br> Row result: " . $r;
-
-            fwrite($h, $sS. "\r\n\r\n<br><br>");
-            fclose($h);
-        }
-    }
-
-    /**
-     * @param array $tableVal
-     * ('table' => 'name_table', 'what' => 'values_of_query', 'exp' => 'expression')
-     * @return array
-     *
-     */
-    public function doSelectMySQL($tableVal = array()) {
-        $mysqli = $this->mysqli;
-        #check function parameter
-        if (!(isset($tableVal))) die("Value does not exist!");
-
-        #generate query string with all parameter
-        $query = "SELECT " . $tableVal['what'] . " FROM " . $tableVal['table'] . " WHERE " . $tableVal['exp'];
-
-        #test print of ready query
-        //echo $query . "<br>";
-
-        #print of results row
-        if ($result = $mysqli->query($query)) {
-            while ($row = $result->fetch_assoc()){
-                $arrData[] = $row;
-                //echo "<br>";
-            }
-            if (isset($arrData))
-            {
-                $this->addLog('select', $query, $arrData);
-                return $arrData;
-            } else
-            {
-                $this->addLog('select', $query, '');
-            }
-        }
-    }
-
-    public function doInsertMySQL($tableVal = array()) {
-        $mysqli = $this->mysqli;
-        #check function parameter
-        if (!(isset($tableVal))) {
-            #error
-            die("Value does not exist!");
-        } else {
-            #test print of parameter
-            //print_r($tableVal);
-            #unset first part of parameter - table name
-            $tableName = $tableVal['table'];
-            unset($tableVal['table']);
-        }
-
-        #separate fetch array on subarray for query generation
-        foreach ($tableVal as $k => $v) {
-            $keys[] = "`". $k . "`";
-            $values[] = "'". $v . "'";
-        }
-        #join all part of subarray
-        $strKey = implode(',', $keys);
-        $strVal = implode(',', $values);
-        #test print
-        //echo $strKey . "<br>" . $strVal . "<br>";
-        #generate query string with all parameters
-        $query = "INSERT INTO " . $tableName . " (" . $strKey . ")" . " VALUES " . "(" . $strVal. ")";
-        //echo $query;
-
-        if ($result = $mysqli->query($query)) {
-            $this->addLog('insert', $query, $result);
-            //$mysqli->close();
-            // возвращаем посл ID
-            return $mysqli->insert_id;
-        }
-    }
-
-    public function doUpdateMySQL($tableVal = array()) {
-        $mysqli = $this->mysqli;
-        #check function parameter
-        if (!(isset($tableVal))) {
-            #error
-            die("Value does not exist!");
-        } else {
-            #unset first part of parameter - table name
-            $tableName = $tableVal['table'];
-            $tableCond = $tableVal['where'];
-            unset($tableVal['table']);
-            unset($tableVal['where']);
-        }
-
-        #separate fetch array on subarray for query generation
-        foreach ($tableVal as $k => $v) $setVal[] = "`". $k . "`" . "=" . "'". $v . "'";
-
-        #join all part of subarray
-        $strVal = implode(",", $setVal);
-
-        #generate query string with all parameters
-        $query = "UPDATE " . $tableName . " SET " . $strVal . " WHERE " . $tableCond;
-        //echo $query;
-        if ($result = $mysqli->query($query)) {
-            $this->addLog('update', $query, $result);
-            //$mysqli->close();
-            // возвращаем посл ID
-            return $mysqli->insert_id;
-        }
-    }
-
-    public function doDeleteMySQL($tableVal = array()) {
-        $mysqli = $this->mysqli;
-        #check function parameter
-        if (!(isset($tableVal))) die("Value does not exist!");
-
-        #generate query string with all parameter
-        $query = "DELETE FROM " . $tableVal['table'] . " WHERE " . $tableVal['exp'];
-
-        #test print of ready query
-        //echo $query . "<br>";
-
-        #print of results row
-        if ($result = $mysqli->query($query)) {
-            $this->addLog('delete', $query, $result);
-            //$mysqli->close();
-            return $result;
-        }
-    }
-
-    public function getHostname() {
-        return $this->hostname;
-    }
-
-    public function getMySQL() {
-        return $this->mysqli;
-    }
-
-    public function getUsername() {
-        return $this->username;
-    }
-
-    public function getDBname() {
-        return $this->dbname;
-    }
-
-    public function getListTables() {
-        $mysqli = $this->mysqli;
-        $query = "SHOW TABLES IN `".$this->dbname."`";
-        #print of results row
-        if ($result = $mysqli->query($query)) {
-            while ($row = $result->fetch_row()) $arrData[] = $row;
-
-            if (isset($arrData)) {
-                for($i=0;$i<count($arrData);$i++) $res[] = $arrData[$i][0];
-                return $res;
-            }
-        }
-    }
-}
-
 class actionParse {
+
     /**
      * @docSrc - source Excel document
      * @cntList - count list of source document
@@ -222,15 +16,15 @@ class actionParse {
      */
     private $docSrc, $cntList, $objExcel, $objReader;
     private $nArr = [   1 => 'Lection',
-                        2 => 'Laboratory',
-                        3 => 'Practice',
-                        4 => 'ControlWork',
-                        5 => 'Auditory',
-                        6 => 'IndepWork',
-                        7 => 'Study',
-                        8 => 'Examine',
-                        9 => 'Total',
-                        10 => 'TypeExamine'];
+        2 => 'Laboratory',
+        3 => 'Practice',
+        4 => 'ControlWork',
+        5 => 'Auditory',
+        6 => 'IndepWork',
+        7 => 'Study',
+        8 => 'Examine',
+        9 => 'Total',
+        10 => 'TypeExamine'];
     private $hoursLst;
     protected $docSheets, $crsLst, $plnLst, $dsLst, $dcLst, $udcLst;//
     private $fileLog = 'input_log.html';
@@ -517,6 +311,8 @@ class actionParse {
      *  function of parse array with ds-cpt
      *  and implode this on two uniq part
      *  one disciple - one competition
+     *
+     * unused...
      */
     public function splitDsCpt() {
         // disciple with competition
@@ -564,21 +360,28 @@ class actionParse {
         return $this->hoursLst;
     }
 
-    public function addDsCompRel($disciple, $competiton, $mysqlObj) {
+    /**
+     * @param $disciple
+     * @param $competiton
+     * @param $mysqlObj
+     * @return int
+     */
+    public function addDsCompRel($disciple, $competiton, $mysqlObj, $itsIdFlag) {
         // test connection
         if($mysqlObj) {
             // it work
-            $sc1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis="' . $disciple . '"'];
-            $sc2 = ['table' => 'mcd_competition', 'what' => 'id_comp', 'exp' => 'name_comp="' . $competiton . '"'];
+            if ($itsIdFlag == 0) {
+                $sc1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis="' . $disciple . '"'];
+                $sc2 = ['table' => 'mcd_competition', 'what' => 'id_comp', 'exp' => 'name_comp="' . $competiton . '"'];
+            } elseif ($itsIdFlag == 1) {
+                $sc1 = ['table' => 'mcd_disciple', 'what' => '*', 'exp' => 'id_dis="' . $disciple . '"'];
+                $sc2 = ['table' => 'mcd_competition', 'what' => '*', 'exp' => 'id_comp="' . $competiton . '"'];
+            }
             if(count($r1 = $mysqlObj->doSelectMySQL($sc1)) > 0) {
-                // disciple unique
                 $id_dis = $r1[0]['id_dis'];
-                bprint($id_dis);
             }
             if(count($r2 = $mysqlObj->doSelectMySQL($sc2)) > 0) {
-                // disciple unique
                 $id_comp = $r2[0]['id_comp'];
-                bprint($id_comp);
             }
             if(isset($id_dis) && isset($id_comp)) {
                 $i = ['table' => 'mcd_dc', 'id_dis' => $id_dis, 'id_comp' => $id_comp];
@@ -588,7 +391,12 @@ class actionParse {
         } else return 0;
     }
 
-    public function addDiscAndComp($mysqlObj, $disciples) {
+    /**
+     * @param $mysqlObj
+     * @param $disciples
+     * @return int
+     */
+    public function addDiscAndComp($mysqlObj, $disciples, $relation) {
         if(isset($mysqlObj)) {
             foreach($disciples as $dis => $cs) {
                 $st = explode(" ", $cs);
@@ -599,7 +407,7 @@ class actionParse {
                     $id_dis = $s1res[0]['id_dis'];
                 } else {
                     $i1 = ['table' => 'mcd_disciple', 'name_dis' => $dis];
-                    $mysqlObj->doInsertMySQL($i1);
+                    $li1 = $mysqlObj->doInsertMySQL($i1);
                 }
                 foreach($st as $d => $c){
                     $s2 = ['table'=>'mcd_competition', 'what' => 'id_comp', 'exp' => 'name_comp="' . $c . '"'];
@@ -609,8 +417,11 @@ class actionParse {
                         $id_comp = $s1res[0]['id_comp'];
                     } else {
                         $i2 = ['table' => 'mcd_competition', 'name_comp' =>  $c];
-                        $mysqlObj->doInsertMySQL($i2);
+                        $li2 = $mysqlObj->doInsertMySQL($i2);
                     }
+                    if ($relation == 1) {
+                        $this->addDsCompRel($li1, $li2, $mysqlObj, 1);
+                    } else {/* do nothing */ }
                 }
             }
             return 1;
@@ -631,17 +442,17 @@ class actionParse {
                         // 'Study' == 'Auditory' + 'IndepWork'
                         // 'Total' == 'Study' + 'Examine'
                         $i1 = ['table' => 'mcd_wsp_ds',
-                                'id_wsp' => '',
-                                'id_ds' => '',
-                                'term' => $term[1],
-                                'course' => $term[0],
-                                'h_lect' => $hours['Lection'],
-                                'h_lab' => $hours['Laboratory'],
-                                'h_pract' => $hours['Practice'],
-                                'h_control' => $hours['ControlWork'],
-                                'h_indep' => $hours['IndepWork'],
-                                'h_exam' => $hours['Examiine'],
-                                'type_exam' => $hours['TypeExamine']
+                            'id_wsp' => '',
+                            'id_ds' => '',
+                            'term' => $term[1],
+                            'course' => $term[0],
+                            'h_lect' => $hours['Lection'],
+                            'h_lab' => $hours['Laboratory'],
+                            'h_pract' => $hours['Practice'],
+                            'h_control' => $hours['ControlWork'],
+                            'h_indep' => $hours['IndepWork'],
+                            'h_exam' => $hours['Examiine'],
+                            'type_exam' => $hours['TypeExamine']
                         ];
                         if ($mysqlObj->doInsertMySQL($i1)) return 1;
                         else return 0;
@@ -655,6 +466,7 @@ class actionParse {
         //check and add
     }
 
+    public function getSelect($type = '') {
+        echo "<option>" . "gf" . "</option>";
+    }
 }
-
-?>

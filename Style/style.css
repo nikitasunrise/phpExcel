@@ -4,15 +4,21 @@ body {
     background: linear-gradient(to right, whitesmoke, white);
 }
 /*main page*/
-body > div, body > div > div{
+div {
     background-color: #E0E5E1;
     border: 1px solid #E0E5E1;
 }
-
+select {
+    height: 25px;
+}
+#logFrm {
+    width: inherit;
+    height: inherit;
+}
 #mB, #tB {
     width: 1000px;
     margin: auto;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     min-height: 50px;
 }
 #mB {
@@ -38,11 +44,42 @@ body > div, body > div > div{
 #cmB {
     margin: 0 auto;
 }
+#hmB {
+    background-color: lightgrey;
+    font-family: Verdana;
+}
+#cntCrs {
+    margin: auto 25px;
+    padding: 5px 10px;
+    width: 35px;
+    font-size: 14pt;
+}
+#dsI {
+    display: inline-block;
+    width: 85%;
+}
+#selDs, #srcDs {
+    background-color: floralwhite;
+    border: 1px solid darkgrey;
+    width: 45%;
+    min-height: 140px;
+}
+#dsInf {
+    margin-top: 25px;
+    width: inherit;
+    border: 1px solid darkgray;
+    min-height: 50px;
+}
+#btnS {
+    width: 10%;
+    margin: 0;
+}
 
 .clear {
     margin: 0 auto !important;
 }
 .btnGr, .btnBl {
+    text-decoration: none;
     font-family: Verdana;
     margin: 5px;
 }
@@ -85,6 +122,19 @@ body > div, body > div > div{
     width: 125px;
     height: 25px;
 }
+.mini {
+    width: 35px;
+    height: 25px;
+}
+.sSz {
+}
+.mSz {
+
+}
+.lSz {
+
+}
+
 .erStat {
     background-color: red;
 }
@@ -99,4 +149,9 @@ body > div, body > div > div{
 .hS {
     margin: 10px 350px;
 }
+.selS {
+    font-size: 12pt;
+    margin: 0 auto;
+}
+
 /*end mainpage*/
