@@ -26,14 +26,15 @@ class actionParse {
         9 => 'Total',
         10 => 'TypeExamine'];
     private $hoursLst;
-    protected $docSheets, $crsLst, $plnLst, $dsLst, $dcLst, $udcLst;//
-    private $fileLog = 'input_log.html';
+    protected $docSheets, $crsLst, $plnLst, $dsLst, $dcLst, $udcLst, $mainLst;
 
-    public function __construct($document) {
-        include_once('Classes/PHPExcel/IOFactory.php');
-        include_once('Classes/PHPExcel.php');
+    private $fileLog;
+
+    public function __construct($document, $logFile) {
+        include_once('../Classes/PHPExcel/IOFactory.php');
+        include_once('../Classes/PHPExcel.php');
         $this->docSrc = $document;
-
+        $this->fileLog = $logFile;
         (!file_exists($this->fileLog)) ? fopen($this->fileLog, 'x') : '';
         if(is_readable($this->fileLog)) {
             $h = fopen($this->fileLog, 'w');
@@ -101,6 +102,69 @@ class actionParse {
         return $this->cntList;
     }
 
+    public function searchMainInformation() {
+        $sheets = $this->docSheets;
+        $re = "/квалиф.*/iu";
+        $re2 = "/срок обуч.*/iu";
+        $re3 = "/профиль:/iu";
+        $this->loggingWork("Поиск основной информации", 0);
+        if (isset($sheets)) {
+            $this->objExcel->setActiveSheetIndex(0);
+            $objActSh = $this->objExcel->getActiveSheet();
+            $hR = $objActSh->getHighestRow();
+            $hC = $objActSh->getHighestColumn();
+            $hCindex = PHPExcel_Cell::columnIndexFromString($hC);
+            $qual = '';
+            $prof = '';
+            $lim = '';
+            for ($row=1; $row <= $hR ; ++$row) {
+                for ($col=0; $col <= $hCindex; ++$col) {
+                    $temp = $objActSh->getCellByColumnAndRow($col, $row);
+                    preg_match($re, $temp, $match);
+                    preg_match($re2, $temp, $match2);
+                    preg_match($re3, $temp, $match3);
+                    if (!empty($match) && empty($qual)){
+                        //print($row."-".$col);
+                        $cVal = $objActSh->getCellByColumnAndRow($col, $row+1)->getValue();
+                        if (($cVal != '')) {
+                            $qual = $cVal;
+                            $this->loggingWork("Квалификация: " . $qual, 1);
+                        } else {
+                            $this->loggingWork("Квалификация: " . $qual, -1);
+                        }
+                    }
+                    if (!empty($match2) && empty($lim)) {
+                        //print($row."-".$col);
+                        $cVal = $objActSh->getCellByColumnAndRow($col, $row+1)->getValue();
+                        if (($cVal != '')) {
+                            $lim = $cVal;
+                            $this->loggingWork("Срок обучения: " . $lim, 1);
+                        } else {
+                            $this->loggingWork("Срок обучения: " . $lim, -1);
+                        }
+                    }
+                    if (!empty($match3) && empty($prof)) {
+                        //print($row."-".$col);
+                        $cVal = $objActSh->getCellByColumnAndRow($col, $row)->getValue();
+                        if ($cVal != '') {
+                            $prof = str_replace("профиль: ", "", $cVal);
+                            $this->loggingWork("Профиль: " . $prof, 1);
+                        } else {
+                            $this->loggingWork("Профиль: " . $prof, -1);
+                        }
+                    }
+                }
+            }
+
+            if (!empty($qual) && (!empty($prof)) && (!empty($lim))) {
+                $this->mainLst = ['qual' => $qual, 'limit' => $lim, 'profile' => $prof];
+                $this->loggingWork("Поиск основной информации", 1);
+            } else {
+                $this->loggingWork("Поиск основной информации", -1);
+            }
+        }
+    }
+
     /**
      * @return lists of coures and
      * list with working plan
@@ -117,7 +181,6 @@ class actionParse {
             if (isset($match2) && (!empty($match2))) $plnLst[$num] = $sheet;
         }
         if(!empty($plnLst) && (!empty($crsLst))) {
-
             $this->crsLst = $crsLst;
             $this->plnLst = $plnLst;
             $this->loggingWork("Поиск листов 'План' и 'Курс'", 1);
@@ -136,6 +199,7 @@ class actionParse {
         $crsLst = $this->crsLst;
         $nArr = $this->nArr;
         $this->loggingWork("Поиск дисциплин", 0);
+
         foreach ($crsLst as $num => $value) {
             $this->objExcel->setActiveSheetIndex($num);
             $objActSh = $this->objExcel->getActiveSheet();
@@ -223,14 +287,10 @@ class actionParse {
                     }
                     $it++;
                 }
-
-
             }
             else {
             }
-
         }
-
         if (!empty($hArr) && isset($hArr)) {
             $this->loggingWork("Проверка часов дисциплин", 1);
             $this->hoursLst = $hArr;
@@ -315,9 +375,7 @@ class actionParse {
      * unused...
      */
     public function splitDsCpt() {
-        // disciple with competition
         if (isset($dcLts)) {
-            //pprint($dcArr);
             foreach($dcLts as $k => $val) {
                 $st = explode(" ", $val);
                 foreach($st as $k2 => $val2){
@@ -326,6 +384,10 @@ class actionParse {
                 }
             }
         }
+    }
+
+    public function getSelect($type = '') {
+        echo "<option>" . "gf" . "</option>";
     }
 
     /**
@@ -361,112 +423,10 @@ class actionParse {
     }
 
     /**
-     * @param $disciple
-     * @param $competiton
-     * @param $mysqlObj
-     * @return int
+     * @return mixed
      */
-    public function addDsCompRel($disciple, $competiton, $mysqlObj, $itsIdFlag) {
-        // test connection
-        if($mysqlObj) {
-            // it work
-            if ($itsIdFlag == 0) {
-                $sc1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis="' . $disciple . '"'];
-                $sc2 = ['table' => 'mcd_competition', 'what' => 'id_comp', 'exp' => 'name_comp="' . $competiton . '"'];
-            } elseif ($itsIdFlag == 1) {
-                $sc1 = ['table' => 'mcd_disciple', 'what' => '*', 'exp' => 'id_dis="' . $disciple . '"'];
-                $sc2 = ['table' => 'mcd_competition', 'what' => '*', 'exp' => 'id_comp="' . $competiton . '"'];
-            }
-            if(count($r1 = $mysqlObj->doSelectMySQL($sc1)) > 0) {
-                $id_dis = $r1[0]['id_dis'];
-            }
-            if(count($r2 = $mysqlObj->doSelectMySQL($sc2)) > 0) {
-                $id_comp = $r2[0]['id_comp'];
-            }
-            if(isset($id_dis) && isset($id_comp)) {
-                $i = ['table' => 'mcd_dc', 'id_dis' => $id_dis, 'id_comp' => $id_comp];
-                if($r = $mysqlObj->doInsertMySQL($i)) return 1;
-                else return 0;
-            }
-        } else return 0;
-    }
-
-    /**
-     * @param $mysqlObj
-     * @param $disciples
-     * @return int
-     */
-    public function addDiscAndComp($mysqlObj, $disciples, $relation) {
-        if(isset($mysqlObj)) {
-            foreach($disciples as $dis => $cs) {
-                $st = explode(" ", $cs);
-                $s1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis ="'.$dis .'"'];
-                $s1res = $mysqlObj->doSelectMySQL($s1);
-
-                if(count($s1res) > 0) {
-                    $id_dis = $s1res[0]['id_dis'];
-                } else {
-                    $i1 = ['table' => 'mcd_disciple', 'name_dis' => $dis];
-                    $li1 = $mysqlObj->doInsertMySQL($i1);
-                }
-                foreach($st as $d => $c){
-                    $s2 = ['table'=>'mcd_competition', 'what' => 'id_comp', 'exp' => 'name_comp="' . $c . '"'];
-                    $s2res = $mysqlObj->doSelectMySQL($s2);
-
-                    if(count($s2res) > 0) {
-                        $id_comp = $s1res[0]['id_comp'];
-                    } else {
-                        $i2 = ['table' => 'mcd_competition', 'name_comp' =>  $c];
-                        $li2 = $mysqlObj->doInsertMySQL($i2);
-                    }
-                    if ($relation == 1) {
-                        $this->addDsCompRel($li1, $li2, $mysqlObj, 1);
-                    } else {/* do nothing */ }
-                }
-            }
-            return 1;
-        } else return 0;
-    }
-
-    public function addHourList($hourList, $mysqlObj) {
-        //query dis
-        if (!empty($hourList) && isset($mysqlObj)) {
-            foreach ($hourList as $dis => $cont) {
-                $s1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis ="'. $dis .'"'];
-                $s1res = $mysqlObj->doSelectMySQL($s1);
-
-                if(count($s1res) > 0) {
-                    $id_dis = $s1res[0]['id_dis'];
-                    foreach ($cont as $term => $hours) {
-                        // 'Auditory' == 'Lection' + 'Laboratory' + 'Practice' + 'ControlWork'
-                        // 'Study' == 'Auditory' + 'IndepWork'
-                        // 'Total' == 'Study' + 'Examine'
-                        $i1 = ['table' => 'mcd_wsp_ds',
-                            'id_wsp' => '',
-                            'id_ds' => '',
-                            'term' => $term[1],
-                            'course' => $term[0],
-                            'h_lect' => $hours['Lection'],
-                            'h_lab' => $hours['Laboratory'],
-                            'h_pract' => $hours['Practice'],
-                            'h_control' => $hours['ControlWork'],
-                            'h_indep' => $hours['IndepWork'],
-                            'h_exam' => $hours['Examiine'],
-                            'type_exam' => $hours['TypeExamine']
-                        ];
-                        if ($mysqlObj->doInsertMySQL($i1)) return 1;
-                        else return 0;
-                    }
-                } else {
-                    //disciple does not exist
-                    return 0;
-                }
-            }
-        } else return 0;
-        //check and add
-    }
-
-    public function getSelect($type = '') {
-        echo "<option>" . "gf" . "</option>";
-    }
+    public function getMainLst()
+    {
+        return $this->mainLst;
+    }//
 }

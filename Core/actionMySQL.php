@@ -2,7 +2,7 @@
 
 class actionMySQL extends mysqli {
     private $hostname, $username, $password, $dbname, $mysqli;
-    private $fileLog = 'sql_log.html';
+    private $fileLog = '../sql_log.html';
 
     public function __construct($hostname, $username, $password, $dbname)
     {

@@ -1,15 +1,21 @@
 <?php
-$mysqlObj = new actionMySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-$mysqlObj->setCharset('utf8');
+    include_once 'function.php';
+    include_once 'config.php';
+    include_once 'actionMySQL.php';
+    include_once 'actionParse.php';
 
-$prsObj = new actionParse("Document/doc.xls");
-$prsObj->searchPlanAndCourseX();
-$prsObj->searchDisciple();
-$prsObj->searchCompetition();
+    if (isset($_SESSION['currPln'])) {
+        $currPln = $_SESSION['currPln'];
+        $prsObj = new actionParse($currPln, INP_LOG);
+        $prsObj->searchMainInformation();
 
-$dsc = $prsObj->getDcLst();
-$hrs = $prsObj->getHoursLst();
+        $prsObj->searchPlanAndCourseX();
+        $prsObj->searchDisciple();
+        $prsObj->searchCompetition();
 
-$prsObj->addDiscAndComp($mysqlObj, $dsc, 1);
-
+        $_SESSION['dcsLst'] = $prsObj->getDcLst();
+        $_SESSION['hrsLst'] = $prsObj->getHoursLst();
+        $_SESSION['mainLst'] = $prsObj->getMainLst();
+    }
+//$prsObj->addDiscAndComp($mysqlObj, $dsc, 1);
 ?>

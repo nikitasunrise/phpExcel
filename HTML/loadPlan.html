@@ -1,17 +1,77 @@
+<script type="text/javascript">
+    function rIframe(){
+        var iframe = document.getElementById('logFrm');
+        iframe.src = iframe.src;
+    }
+
+    function show(state){
+        document.getElementById('wB').style.display = state;
+        document.getElementById('bckB').style.display = state;
+    }
+
+    function checkField() {
+        var fl = 0;
+        var ev = '';
+        var cs = document.accOp.codeSt.value;
+        var ss = document.accOp.specSt.value;
+        var fs = document.accOp.hi.value;
+
+        ((cs.length  >= 6) && (cs.length <= 15)) ? fl++ : ev += "Код специальности. Длина некорректна! ";
+        ((ss.length  >= 15) && (ss.length <= 100)) ? fl++ : ev += "Название специальности. Длина некорректна! ";
+        if (fl == 2) {
+            alert("РУП успешно добален!");
+            return true;
+        } else {
+            alert(ev);
+            ev = '';
+            return false;
+        }
+    }
+</script>
 <h4><b>I.</b> Выберите файл для загрузки</h4>
-<form action="Core/loadPlan.php" method="post" enctype="multipart/form-data">
+<iframe id="iFrm" name="iFrm" style="display: none">
+</iframe>
+<form id="loadForm" action="Core/loadPlan.php" method="post" enctype="multipart/form-data" target="iFrm">
     <input type="file" class="btnBl" name="filename">
-    <button type="submit" class="btnBl col3">Загрузить</button>
+    <button type="submit" class="btnBl col3" onclick="">Загрузить</button>
 </form>
 <label id="fInf"></label>
 <br>
+
+<button class="rightB btnGr col7" onclick="rIframe()"><i class="fa fa-refresh fa-3x"></i></button>
 <div id="logPln">
-    <iframe id="logFrm" src="input_log.html">
-    </iframe>
+    <iframe id="logFrm" name="logFrm" src='input_log.html' onclick=""></iframe>
 </div>
 <br>
 <h4><b>II.</b>Подтвердите совершенные операции</h4>
-<form id="accOp" action="#">
-    <button type="submit" class="btnBl col2">Подтвердить</button>
-    <button type="reset" class="btnBl col2">Отменить</button>
-</form>
+<span style="display: inline-flex">
+<button type="" class="btnBl col2" onclick="show('block')">Подтвердить</button>
+<form id="cncOp" action="Core/goBack.php" method="post">
+    <input id="hi2" type="hidden" value="clear" name="hi">
+    <button type="submit" class="btnBl col2">Отменить</button>
+</form></span>
+
+<div id="bckB">
+    <div id="wB">
+        <form id="accOp" action="Core/goBack.php" method="post" name="accOp" onsubmit="return checkField();">
+            <h4>Выберите и заполните необходимые поля</h4>
+            <h5>Форма обучения </h5>
+            <select name="formSt">
+                <option value="Очная">Очная</option>
+                <option value="Заочная">Заочная</option>
+            </select>
+            <br>
+
+            <h5>Код специальности</h5>
+            <input type="text" name="codeSt">
+            <br>
+            <h5>Наименование специальности</h5>
+            <input type="text" name="specSt">
+            <br><br>
+            <button  type="submit" class="btnBl col3 clear">Подтвердить</button>
+            <input id="hi1" type="hidden" value="accept" name="hi">
+        </form>
+        <button class="btnBl col3 clear" onclick="show('none')">Вернуться</button>
+
+    </div>
+</div>
