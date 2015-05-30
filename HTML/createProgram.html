@@ -1,0 +1,236 @@
+<script type="text/javascript">
+    var count = 1, control = 1, work = 1;
+
+    function updateBlock(block, direction) {
+        if (direction && block) {
+            var prnt = block.parentNode.id;
+            switch (direction) {
+                case 'next':
+                    // this block invisible
+                    document.getElementById(prnt).style.display = 'none';
+                    prnt = Number(prnt[0]) + 1;
+                    // next step
+                    document.getElementById('nSt').innerHTML = prnt;
+                    prnt = String(prnt) + 'bl';
+                    // next block visible
+                    document.getElementById(prnt).style.display = 'block';
+                    break;
+                case 'back':
+                    document.getElementById(prnt).style.display = 'none';
+                    prnt = Number(prnt[0]) - 1;
+                    // next step
+                    document.getElementById('nSt').innerHTML = prnt;
+                    prnt = String(prnt) + 'bl';
+                    // next block visible
+                    document.getElementById(prnt).style.display = 'block';
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    function movePart(block, action) {
+        if (!window.count) window.count++;
+        alert(block.parentNode);
+        action = String(action);
+        var pEl = document.getElementById(block.parentNode.id);
+        switch (action) {
+            case '1':
+                // get the parent node
+                var e = pEl.children[1].id
+                var insEl = document.getElementById(e);
+                var str = '<td><input type="text" class="inpPr" name="prtTerm'+window.count+' "></td>\
+                            <td><input type="text" class="inpPr" name="prtName'+window.count+' "></td>\
+                            <td><input type="text" class="inpPr" name="prtWeek'+window.count+' "></td>\
+                            <td><input type="text" class="inpPr" name="prtLect'+window.count+' "></td>\
+                            <td><input type="text" class="inpPr" name="prtPract'+window.count+' "></td>\
+                            <td><input type="text" class="inpPr" name="prtLab'+window.count+' "></td>\
+                            <td><input type="text" class="inpPr" name="prtWork'+window.count+' "></td>\
+                            <td><input type="text" class="inpPr" name="prtCtrl'+window.count+' "></td>\
+                            <td><input type="text" class="inpPr" name="prtAtt'+window.count+' "></td>\
+                            <td><input type="text" class="inpPr" name="prtMax'+window.count+' "></td>\
+                            <td><button type="button" class="btnRd col9" onclick="movePart(this, -1)">X</button></td>';
+                // create a new div block
+                var newEl = document.createElement('tr');
+                newEl.id = 'prt' + window.count;
+                // put in new block STR contain
+                newEl.innerHTML = str;
+                // put new block in the parent
+                insEl.appendChild(newEl);
+                window.count++;
+                break;
+            case '-1':
+                if (!pEl) var pEl = document.getElementById(block.parentNode.parentNode.id);
+                pEl.parentNode.removeChild(pEl);
+                //window.count--;
+                break;
+            default:
+                break;
+        }
+    }
+
+    function moveWork(block, action) {
+        if (!window.count) window.work++;
+        action = String(action);
+        var pEl = document.getElementById(block.parentNode.id);
+        switch (action) {
+            case '1':
+                // get the parent node
+                var e = pEl.children[1].id
+                var insEl = document.getElementById(e);
+                var str = '<td><input type="text" class="inpPr" name="workTerm'+window.count+' "></td>\
+                            <td><textarea class="ta2" name="workName'+window.count+' "></textarea></td>\
+                            <td><textarea class="ta2" name="workDesr'+window.count+' "></textarea></td>\
+                            <td><button type="button" class="btnRd col9" onclick="moveWork(this, -1)">X</button></td>';
+                // create a new div block
+                var newEl = document.createElement('tr');
+                newEl.id = 'prt' + window.count;
+                // put in new block STR contain
+                newEl.innerHTML = str;
+                // put new block in the parent
+                insEl.appendChild(newEl);
+                window.count++;
+                break;
+            case '-1':
+                if (!pEl) var pEl = document.getElementById(block.parentNode.parentNode.id);
+                pEl.parentNode.removeChild(pEl);
+                //window.count--;
+                break;
+            default:
+                break;
+        }
+    }
+
+    function moveControl(block, action) {
+
+    }
+
+    function showHide(block, str){
+        var obj = document.getElementById(str);
+        if (obj.style.display == 'block') {
+            obj.style.display = 'none';
+            tmpStr = '[+]' + block.innerHTML.substr(3);
+            block.innerHTML = tmpStr;
+        } else {
+            obj.style.display = 'block';
+            tmpStr = '[-]' + block.innerHTML.substr(3);
+            block.innerHTML = tmpStr;
+        }
+    }
+
+</script>
+<div id="headBlock">
+    <div id="blInfo" class="leftB" >
+    О дисциплине:<u onclick="showHide(this, 'blContent')" style="cursor: hand">[+]</u>
+        <span id="blContent" style="display: none">
+            <?php print getWorkContent($_SESSION['work']) ?>
+        </span>
+    </div>
+    <h3>Создание документа <i>Программа</i></h3>
+    <h4 id="hdr" class="">Этап <i id="nSt">1</i></h4>
+</div>
+<form id="prgFrm" action="complete?d=programm" method="post">
+<div id="1bl">
+    <h3>Цели освоения учебной дисциплины</h3>
+    <label class="">Целью освоения учебной дисциплины <br> «<?php print $_SESSION['ds'] ?>» является ...</label><br><br>
+    <textarea class="blBl ta0" placeholder="продолжите с маленькой буквы..." name="descrSt"></textarea>
+    <button type="button" class="btnGr col2 mrg50" onclick="updateBlock(this, 'next')">Далее</button>
+</div>
+<div id="2bl" style="display: none">
+    <h3>Формируемые компетенции</h3>
+    <p>Распределите компетенции по группам, <br>указывая их во множетсвенном числе. Например:</p>
+    <label><i>В результате освоения данной дисциплины <br>формируются следующие<t class="mark">общеобразовательные</t> компетенции
+    </i></label><br><br>
+
+    <p>В результате освоения дисциплины студент должен знать:</p>
+    <textarea class="blBl ta1" name="knwSt"
+              placeholder="- значение 1;&#10;- значение 2;&#10;...&#10;- значение N;"></textarea>
+
+    <p>В результате освоения дисциплины студент должен уметь:</p>
+    <textarea class="blBl ta1" name="ablSt"
+              placeholder="- значение 1;&#10;- значение 2;&#10;...&#10;- значение N;"></textarea>
+
+    <p>В результате освоения дисциплины студент должен владеть:</p>
+    <textarea class="blBl ta1" name="sklSt"
+              placeholder="- значение 1;&#10;- значение 2;&#10;...&#10;- значение N;"></textarea>
+    <br>
+    <button type="button" class="btnBl col2 mrg50" onclick="updateBlock(this, 'back')">Назад</button>
+    <button type="button" class="btnGr col2 mrg50" onclick="updateBlock(this, 'next')">Далее</button>
+</div>
+<div id="3bl" style="display: none">
+    <h3>Структура и содержание учебной дисциплины</h3>
+    <h4>Номера разделов будут присвоены автоматически</h4>
+
+    <div id="term1">
+        <table id="partTbl" border="1">
+            <button type="button" class="btnBl col3 mrg25" onclick="movePart(this, 1)">Добавить раздел</button>
+            <tr>
+                <th width="50px">Семестр</th>
+                <th width="250px">Название</th>
+                <th width="75px">Недели</th>
+                <th width="75px">Лекции (ч.)</th>
+                <th width="75px">Практ. занятия</th>
+                <th width="75px">Лаб.раб.</th>
+                <th width="70px">СРС</th>
+                <th width="150px">Текущий контроль</th>
+                <th width="125px">Аттест.</th>
+                <th width="75px">Макс. баллов</th>
+                <th width="25px"></th>
+            </tr>
+        </table>
+    </div>
+
+    <button type="button" class="btnBl col2 mrg50" onclick="updateBlock(this, 'back')">Назад</button>
+    <button type="button" class="btnGr col2 mrg50" onclick="updateBlock(this, 'next')">Далее</button>
+</div>
+<div id="4bl" style="display: none">
+    <h3>Образовательные технологии</h3>
+    <p>Перечислите образовательные технологии, <br>используемые при изучении данной дисциплины</p>
+    <textarea class="blBl ta1" name="techSt"
+              placeholder="- значение 1;&#10;- значение 2;&#10;...&#10;- значение N;"></textarea>
+    <br>
+    <button type="button" class="btnBl col2 mrg50" onclick="updateBlock(this, 'back')">Назад</button>
+    <button type="button" class="btnGr col2 mrg50" onclick="updateBlock(this, 'next')">Далее</button>
+</div>
+<div id="5bl" style="display: none">
+    <h3>Оценочные средства</h3>
+
+    <?php if(count(getPractCount($_SESSION['work'], 'pass')) == 1): ?>
+    <p>Примерный перечень вопросов к зачету</p>
+    <textarea class="blBl ta0"></textarea>
+    <br>
+    <?php endif; ?>
+
+    <?php if(count(getPractCount($_SESSION['work'],'exam')) > 0): ?>
+    <p>Примерный перечень вопросов к экзамену</p>
+    <textarea class="blBl ta0"></textarea>
+    <br>
+    <?php endif;?>
+
+    <?php if(count(getPractCount($_SESSION['work'], 'pract')) > 0): ?>
+    <p>Домашние и практические работы</p>
+    <div id="hwBl">
+        <table id="hwTbl" border="">
+            <button type="button" class="btnBl col3 mrg25" onclick="moveWork(this, 1)">Добавить работу</button>
+            <tr border="1">
+                <th width="50px">Семестр</th>
+                <th width="250px">Задание</th>
+                <th width="600px">Описание задания</th>
+                <th width="25px"></th>
+            </tr>
+        </table>
+    </div>
+    <br>
+    <?php endif; ?>
+
+
+    <button type="button" class="btnBl col2 mrg50" onclick="updateBlock(this, 'back')">Назад</button>
+    <button type="button" class="btnGr col2 mrg50" onclick="updateBlock(this, 'next')">Далее</button>
+</div>
+<div id="6bl" style="display: none">
+    <h3>Основная и дополнительная литература</h3>
+    <button type="button" class="btnBl col2 mrg50" onclick="updateBlock(this, 'back')">Назад</button>
+    <button class="btnGr col1 mrg50" type="submit">Завершить</button>
+</div>
+</form>

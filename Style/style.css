@@ -1,4 +1,8 @@
 /* block authorisation */
+hr {
+    height: 1px;
+    background-color: #E0E5E1;
+}
 body {
     font-family: Verdana;
     background: linear-gradient(to right, whitesmoke, white);
@@ -109,15 +113,52 @@ select {
     border: 3px solid darkslategrey;
     border-radius: 10px;
 }
+#taB {
 
+}
+#partTbl, #hTbl {
+    width: 100%;
+    font-size: 10pt;
+}
+#wspSel {
+    width: 300px;
+    min-height: 35px;
+}
+#blInfo {
+    margin-right: -150px;
+    font-family: Consolas;
+    font-size: 11pt;
+    width: 175  px;
+    border: 2px solid whitesmoke;
+    background-color: #d7d7d7;
+    padding:0 5px;
+}
+#headBlock {
+}
+
+table#partTbl > tr > td > input, table#hwTbl > tr > td > input{
+    width: 100%;
+}
+.tdP {
+    width: inherit;
+}
+.blGr {
+    background-color: #E3FFE3;
+    border: 1px solid darkgreen;
+}
+.blBl{
+    background-color: #E3E3FF;
+    border: 1px solid steelblue;
+}
 .clear {
     margin: 0 auto !important;
 }
-.btnGr, .btnBl {
+.btnGr, .btnBl, .btnRd {
     text-decoration: none;
     font-family: Verdana;
     margin: 5px;
 }
+
 .btnBl {
     background-color: steelblue;
     border: 1px solid steelblue;
@@ -128,6 +169,7 @@ select {
 .btnBl:active {
     background-color: lightskyblue;
 }
+
 .btnGr {
     background-color: darkgreen;
     border: 1px solid darkgreen;
@@ -138,11 +180,32 @@ select {
 .btnGr:active {
     background-color: limegreen;
 }
+
+.btnRd {
+    background-color: red;
+    border: 1px solid red;
+}
+.btnRd:hover {
+    background-color: indianred;
+}
+.btnRd:active {
+    background-color: #EA0000;
+}
+
 .leftB {
     float: left;
 }
 .rightB {
     float: right;
+}
+
+.col0 {
+    width: 200px;
+    height: 75px;
+}
+.col1 {
+    width: 175px;
+    height: 65px;
 }
 .col2 {
     width: 150px;
@@ -172,6 +235,10 @@ select {
     width: 50px;
     height: 25px;
 }
+.col9 {
+    width: 25px;
+    height: 25px;
+}
 .mini {
     width: 35px;
     height: 25px;
@@ -184,7 +251,12 @@ select {
 .lSz {
 
 }
-
+.mrg50 {
+    margin: 50px;
+}
+.mrg25 {
+    margin: 25px;
+}
 .erStat {
     background-color: red;
 }
@@ -208,6 +280,39 @@ select {
 }
 .showS {
     display: block;
+}
+.mark {
+    padding: 5px;
+    line-height: 30px;
+    font-size: 10pt;
+    color: #9A9A9A;
+    background-color: lightgrey;
+    border:1px solid darkgrey;
+}
+.ta0 {
+    font-family: Verdana;
+    width: 500px;
+    min-height: 125px;
+    resize: none;
+    margin: 0 20%;
+}
+.ta1 {
+    font-family: Verdana;
+    width: 500px;
+    min-height: 135px;
+    resize: none;
+    margin: 0 20%;
+}
+.ta2 {
+    width: 100%;
+    resize: none;
+    min-height: 50px;
+}
+.inpPr {
+    border: 0px;
+    color: black;
+    font-size: 12pt;
+    text-align: center;
 }
 
 /*end mainpage*/

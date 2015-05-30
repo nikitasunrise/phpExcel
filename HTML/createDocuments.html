@@ -1,0 +1,79 @@
+<script type="text/javascript">
+    function checkField(src) {
+        var act;
+        var s = src.options[src.selectedIndex].innerHTML;
+        window.act= '&dis='+ s;
+    }
+
+    function subForm(form) {
+        if(window.act) {
+            form.action += window.act;
+            window.action = null;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function checkDoc(obj, state){
+        var action, name;
+        if(obj) {
+            action = obj.value;
+            name = obj.innerText;
+            document.getElementById('hdr').innerHTML = name;
+            //document.getElementById('refD').href += '?d='+action;
+            document.getElementById('frm').action = '?d='+action;
+
+        }
+        if(state == true) {
+            document.getElementById('wB').style.display = 'block';
+            document.getElementById('bckB').style.display = 'block';
+        } else if(state == false) {
+            document.getElementById('wB').style.display = 'none';
+            document.getElementById('bckB').style.display = 'none';
+        }
+    }
+</script>
+<div id="docCr" align="center">
+    <button class="btnBl col1" onclick="checkDoc(this, true)" value="programm">
+        Программа
+    </button>
+    <br>
+    <button class="btnBl col1" onclick="checkDoc(this, true)" value="mtt">
+        Методические указания преподавателю
+    </button>
+    <br>
+    <button class="btnBl col1" onclick="checkDoc(this, true)" value="mts">
+        Методические указания студенту
+    </button>
+    <br>
+    <button class="btnBl col1" onclick="checkDoc(this, true)" value="plan">
+        Календарный план
+    </button>
+    <br>
+    <button class="btnBl col1" onclick="checkDoc(this, true)" value="pract">
+        Практики
+    </button>
+    <br>
+    <button class="btnBl col1" onclick="checkDoc(this, true)" value="fos">
+        Фонд оценочных средств
+    </button>
+    <br>
+</div>
+<div id="bckB">
+    <?php include 'function.php'?>
+    <div id="wB">
+        <form id="frm" action="create" method="post" onsubmit="return subForm(this);">
+            <h5>Вы выбрали:</h5>
+            <h4 id="hdr"></h4><br>
+            <h5>Выберите дисциплину</h5>
+            <select id="dsSelect" name="ds" onchange="checkField(this)">
+                <?php print (getSelect('disciple', $_POST['wsp'])) ?>
+            </select>
+            <br>
+            <br>
+            <button type="submit" class="btnBl col2">Подтвердить</button><br>
+            <button type="button" class="btnGr col2" onclick="checkDoc(0, false)">Вернуться</button><br>
+        </form>
+    </div>
+</div>

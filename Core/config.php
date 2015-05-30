@@ -5,6 +5,7 @@ error_reporting(0);
 define('RQ_DEF', '/phpexcel/');
 define('TIME_NOW', date('Y-m-d H:i:s'));
 define('INP_LOG', '../input_log.html');
+define('SQL_LOG', 'sql_log.txt');
 define('CHARSET', 'utf-8');
 /**
 * Constants for database

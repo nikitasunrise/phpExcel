@@ -1,3 +1,24 @@
+<head><meta charset="utf-8"></head>
+<script type="text/javascript">
+    function checkWSP(obj, state){
+        var action, name;
+        if(obj) {
+//            action = obj.value;
+//            name = obj.innerText;
+//            document.getElementById('hdr').innerHTML = name;
+//            //document.getElementById('refD').href += '?d='+action;
+//            document.getElementById('frm').action = '?d='+action;
+
+        }
+        if(state == true) {
+            document.getElementById('wB').style.display = 'block';
+            document.getElementById('bckB').style.display = 'block';
+        } else if(state == false) {
+            document.getElementById('wB').style.display = 'none';
+            document.getElementById('bckB').style.display = 'none';
+        }
+    }
+</script>
 <div id="wcfLd" align="center">
     <h5 class="">Загрузка РУП</h5>
     <a href="load?t=auto"><button class="btnBl col2">Автоматически</button></a>
@@ -9,10 +30,24 @@
 </div>
 <div id="docCr" align="center">
     <h5 class="">Создание документации</h5>
-    <a href="create?d=prog"> <button class="btnBl col2">Программа</button></a>
-    <a href="create?d=fos"><button class="btnBl col2">ФОС</button></a>
-    <a href="create?d=mtt"><button class="btnBl col2">МУП</button></a>
-    <a href="create?d=mts"><button class="btnBl col2">МУС</button></a>
-    <a href="create?d=plan"><button class="btnBl col2">ПЛАН</button></a>
-    <a href="create?d=pract"><button class="btnBl col2">ПРАКТИКИ</button></a>
+    <button type="button" class="btnBl col1" onclick="checkWSP(this, true)">Перейти к созданию документации</button>
+</div>
+
+<div id="bckB">
+    <?php include 'function.php'?>
+    <div id="wB">
+        <form id="frm" action="create" method="post">
+            <h4>Выберите РУП</h4><br><br>
+
+            <select name="wsp" id="wspSel">
+                <?php print (getSelect('wsp', 0)) ?>
+            </select>
+            <br>
+            <br>
+            <br>
+            <button type="submit" class="btnBl col1">Подтвердить</button><br><br>
+
+            <button type="button" class="btnGr col1" onclick="checkWSP(0, false)">Вернуться</button><br>
+        </form>
+    </div>
 </div>

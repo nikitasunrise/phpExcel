@@ -7,26 +7,31 @@
  */
 
 class actionWSP {
+    private $mysqlObj;
 
-    public function __construct() {
+    public function __construct($mysqlObj) {
+        if($mysqlObj->getDBname()) {
+            $this->mysqlObj = $mysqlObj;
+        }
     }
 
     /**
      * @param $disciple
-     * @param $competiton
+     * @param $competence
      * @param $mysqlObj
      * @return int
      */
-    public function addDsCompRel($disciple, $competiton, $mysqlObj, $itsIdFlag) {
+    public function addDsCompRel($disciple, $competence, $isIdFlag) {
+        $mysqlObj = $this->mysqlObj;
         // test connection
         if($mysqlObj) {
             // it work
-            if ($itsIdFlag == 0) {
-                $sc1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis="' . $disciple . '"'];
-                $sc2 = ['table' => 'mcd_competition', 'what' => 'id_comp', 'exp' => 'name_comp="' . $competiton . '"'];
-            } elseif ($itsIdFlag == 1) {
-                $sc1 = ['table' => 'mcd_disciple', 'what' => '*', 'exp' => 'id_dis="' . $disciple . '"'];
-                $sc2 = ['table' => 'mcd_competition', 'what' => '*', 'exp' => 'id_comp="' . $competiton . '"'];
+            if ($isIdFlag == 0) {
+                $sc1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'WHERE name_dis="' . $disciple . '"'];
+                $sc2 = ['table' => 'mcd_competence', 'what' => 'id_comp', 'exp' => 'WHERE name_comp="' . $competence . '"'];
+            } elseif ($isIdFlag == 1) {
+                $sc1 = ['table' => 'mcd_disciple', 'what' => '*', 'exp' => 'WHERE id_dis="' . $disciple . '"'];
+                $sc2 = ['table' => 'mcd_competence', 'what' => '*', 'exp' => 'WHERE id_comp="' . $competence . '"'];
             }
             if(count($r1 = $mysqlObj->doSelectMySQL($sc1)) > 0) {
                 $id_dis = $r1[0]['id_dis'];
@@ -47,31 +52,31 @@ class actionWSP {
      * @param $disciples
      * @return int
      */
-    public function addDiscAndComp($mysqlObj, array $disciples, $relation = null) {
+    public function addDiscAndComp($disciples, $relation = null) {
+
+        $mysqlObj = $this->mysqlObj;
         if(isset($mysqlObj)) {
             foreach($disciples as $dis => $cs) {
                 $st = explode(" ", $cs);
-                $s1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis ="'.$dis .'"'];
+                $s1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'WHERE name_dis ="'.$dis .'"'];
                 $s1res = $mysqlObj->doSelectMySQL($s1);
-
                 if(count($s1res) > 0) {
                     $id_dis = $s1res[0]['id_dis'];
                 } else {
                     $i1 = ['table' => 'mcd_disciple', 'name_dis' => $dis];
-                    $li1 = $mysqlObj->doInsertMySQL($i1);
+                    //$id_dis = $mysqlObj->doInsertMySQL($i1);
                 }
                 foreach($st as $d => $c){
-                    $s2 = ['table'=>'mcd_competition', 'what' => 'id_comp', 'exp' => 'name_comp="' . $c . '"'];
+                    $s2 = ['table'=>'mcd_competence', 'what' => 'id_comp', 'exp' => 'WHERE name_comp="' . $c . '"'];
                     $s2res = $mysqlObj->doSelectMySQL($s2);
-
                     if(count($s2res) > 0) {
-                        $id_comp = $s1res[0]['id_comp'];
+                        $id_comp = $s2res[0]['id_comp'];
                     } else {
-                        $i2 = ['table' => 'mcd_competition', 'name_comp' =>  $c];
-                        $li2 = $mysqlObj->doInsertMySQL($i2);
+                        $i2 = ['table' => 'mcd_competence', 'name_comp' =>  $c];
+                        //$id_comp = $mysqlObj->doInsertMySQL($i2);
                     }
                     if ($relation == 1) {
-                        $this->addDsCompRel($li1, $li2, $mysqlObj, 1);
+                        $this->addDsCompRel($id_dis, $id_comp, $mysqlObj, 1);
                     } else {/* do nothing */ }
                 }
             }
@@ -79,7 +84,9 @@ class actionWSP {
         } else return 0;
     }
 
-    public function addWsp($formSt, $codeSt, $specSt, $qualSt, $limitSt, $profileSt) {
+    public function addWsp($formSt, $codeSt, $specSt, $qualSt, $limitSt, $profileSt, $yearSt, $hashPln) {
+        $mysqlObj = $this->mysqlObj;
+
         if (!empty($formSt) &&
             !empty($codeSt) &&
             !empty($specSt) &&
@@ -93,8 +100,9 @@ class actionWSP {
                 'code_group' => $codeSt,
                 'name_spec' => $specSt,
                 'count_year' => $limitSt,
-                'profile_st' => $profileSt
-            ];
+                'profile_st' => $profileSt,
+                'year_st' => $yearSt,
+                'md5_wsp' => $hashPln];
             $iPlnRes = $mysqlObj->doInsertMySQL($iPln);
             $_SESSION['id_wsp'] = $iPlnRes;
             return $iPlnRes;
@@ -102,40 +110,41 @@ class actionWSP {
     }
 
     public function addHourList($idWsp, $hourList, $mysqlObj) {
-        if (!empty($hourList) && isset($mysqlObj) && !empty($idWsp)) {
+        $mysqlObj = $this->mysqlObj;
+        if (!empty($hourList) && !empty($idWsp)) {
             foreach ($hourList as $dis => $cont) {
-                $s1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'name_dis ="'. $dis .'"'];
+                $s1 = ['table' => 'mcd_disciple', 'what' => 'id_dis', 'exp' => 'WHERE name_dis ="'. $dis .'"'];
                 $s1res = $mysqlObj->doSelectMySQL($s1);
                  // select DIS -> id
                 if(count($s1res) > 0) {
                     $id_dis = $s1res[0]['id_dis'];
-                    foreach ($cont as $term => $hours) {
+                    foreach ($cont as $trm => $hours) {
                         // 'Auditory' == 'Lection' + 'Laboratory' + 'Practice' + 'ControlWork'
                         // 'Study' == 'Auditory' + 'IndepWork'
                         // 'Total' == 'Study' + 'Examine'
-                        $i1 = ['table' => 'mcd_wsp_ds',
-                            'id_wsp' => $idWsp,
-                            'id_ds' => $id_dis,
-                            'term' => $term[1],
-                            'course' => $term[0],
-                            'h_lect' => $hours['Lection'],
-                            'h_lab' => $hours['Laboratory'],
-                            'h_pract' => $hours['Practice'],
-                            'h_control' => $hours['ControlWork'],
-                            'h_indep' => $hours['IndepWork'],
-                            'h_exam' => $hours['Examiine'],
-                            'type_exam' => $hours['TypeExamine']
-                        ];
-                        if ($mysqlObj->doInsertMySQL($i1)) return 1;
-                        else return 0;
+                        $audit = $hours['Lection'] + $hours['Laboratory'] + $hours['Practice'] + $hours['ControlWork'];
+                        $t = (string)$trm;
+                        if (($audit == 0) && ($hours['TypeExamine'] == '')) {
+                            // do nothing
+                        } else {
+                            $i1 = ['table' => 'mcd_wsp_ds',
+                                'id_wsp' => $idWsp,
+                                'id_ds' => $id_dis,
+                                'trm' => $t[1],
+                                'course' => $t[0],
+                                'h_lect' => $hours['Lection'],
+                                'h_lab' => $hours['Laboratory'],
+                                'h_pract' => $hours['Practice'],
+                                'h_control' => $hours['ControlWork'],
+                                'h_indep' => $hours['IndepWork'],
+                                'h_exam' => $hours['Examine'],
+                                'type_exam' => $hours['TypeExamine']];
+                            $mysqlObj->doInsertMySQL($i1);
+                        }
                     }
-                } else {
-                    //disciple does not exist
-                    return 0;
-                }
+                } else {}
             }
         } else return 0;
         //check and add
     }
-
-} 
+}

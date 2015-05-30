@@ -4,13 +4,12 @@
     include_once 'config.php';
     include_once 'actionMySQL.php';
     include_once 'actionWSP.php';
-
-    pprint($_POST);
     if (isset($_SESSION['currPln']) && !empty($_SESSION['currPln'])) {
         // file exist
         (($_POST['formSt'] == 'Очная') || ($_POST['formSt'] == 'Заочная')) ? $fs = $_POST['formSt'] : die();
 
         // сделать проверку на существование
+        $ys = $_POST['yearSt'];
         $cs = $_POST['codeSt'];
         $ss = $_POST['specSt'];
         $a = $_POST['hi'];
@@ -21,19 +20,16 @@
 
         $dc = $_SESSION['dcsLst'];
         $hr = $_SESSION['hrsLst'];
-
+        $hash = $_SESSION['hashPln'];
         switch ($a) {
             case 'accept':
-                $wspObj = new actionWSP();
-                $mysqlObj = new actionMySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+                $mysqlObj = new actionMySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME, SQL_LOG);
                 $mysqlObj->setCharset('utf8');
+                $wspObj = new actionWSP($mysqlObj);
 
-                $idWsp = $wspObj->addWsp($fs, $cs, $ss, $qs, $ls, $ps);
-
-                $wspObj->addDiscAndComp($mysqlObj, $dc, 1);
-
-                $wspObj->addHourList($idWsp, $hr, $mysqlObj);
-
+                $idWsp = $wspObj->addWsp($fs, $cs, $ss, $qs, $ls, $ps, $ys, $hash);
+                $wspObj->addDiscAndComp($dc, 1);
+                $wspObj->addHourList($idWsp, $hr);
                 // insert WSP
                 // insert HOURs
                 break;
@@ -53,4 +49,5 @@
         }
     }
 
+    header("Location:". RQ_DEF);
     session_destroy();

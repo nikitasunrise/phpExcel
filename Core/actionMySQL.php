@@ -2,19 +2,23 @@
 
 class actionMySQL extends mysqli {
     private $hostname, $username, $password, $dbname, $mysqli;
-    private $fileLog = '../sql_log.html';
+    private $fileLog;
 
-    public function __construct($hostname, $username, $password, $dbname)
+    public function __construct($hostname, $username, $password, $dbname, $logFile)
     {
         $mysqli = new mysqli($hostname, $username, $password, $dbname);
         if ($mysqli->connect_error) {
+            $this->addLog('connect', $mysqli->connect_error, 0);
             die('Ошибка подключения (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
+        } else {
+            $this->addLog('connect', NULL, 0);
         }
         $this->hostname = $hostname;
         $this->username = $username;
         $this->password = $password;
         $this->dbname = $dbname;
         $this->mysqli = $mysqli;
+        $this->fileLog = $logFile;
 
         (!file_exists($this->fileLog)) ? fopen($this->fileLog, 'x') : '';
     }
@@ -24,18 +28,16 @@ class actionMySQL extends mysqli {
         if (!$mysqli->set_charset($encoding)) {
             printf("Charset load failed: %s\n", $mysqli->error);
         }
-        if(is_readable($this->fileLog)) {
-            $h = fopen($this->fileLog, 'w');
-            $ss = "<html><head><meta charset='utf-8'></head>\r\n";
-            fwrite($h, $ss);
-            fclose($h);
-        }
     }
 
     private function addLog($type, $query, $result) {
         if(is_readable($this->fileLog)) {
             $h = fopen($this->fileLog, 'a');
             switch($type) {
+                case 'connect':
+                    $query = "Try connect. " . $query;
+                    if ($result == 1) $r = "Connection success";
+                    else $r = "Connection lost";
                 case 'select':
                     if(is_array($result)) $a = count($result);
                     else $a = 0;
@@ -48,9 +50,8 @@ class actionMySQL extends mysqli {
                     else $r = "Error returned";
                     break;
             }
-            $sS = date('Y-m-d H:i:s') .": ". $query. "\r\n<br> Row result: " . $r;
-
-            fwrite($h, $sS. "\r\n\r\n<br><br>");
+            $sS = TIME_NOW .": ". $query. "\r\n Result: " . $r;
+            fwrite($h, $sS. "\r\n\r\n");
             fclose($h);
         }
     }
@@ -67,7 +68,7 @@ class actionMySQL extends mysqli {
         if (!(isset($tableVal))) die("Value does not exist!");
 
         #generate query string with all parameter
-        $query = "SELECT " . $tableVal['what'] . " FROM " . $tableVal['table'] . " WHERE " . $tableVal['exp'];
+        $query = "SELECT " . $tableVal['what'] . " FROM " . $tableVal['table'] . " " . $tableVal['exp'];
 
         #test print of ready query
         //echo $query . "<br>";
@@ -85,6 +86,7 @@ class actionMySQL extends mysqli {
             } else
             {
                 $this->addLog('select', $query, '');
+                return null;
             }
         }
     }
@@ -116,12 +118,14 @@ class actionMySQL extends mysqli {
         #generate query string with all parameters
         $query = "INSERT INTO " . $tableName . " (" . $strKey . ")" . " VALUES " . "(" . $strVal. ")";
         //echo $query;
-
         if ($result = $mysqli->query($query)) {
             $this->addLog('insert', $query, $result);
             //$mysqli->close();
             // возвращаем посл ID
             return $mysqli->insert_id;
+        } else {
+            $this->addLog('insert', $query, 0);
+            return null;
         }
     }
 
@@ -138,7 +142,6 @@ class actionMySQL extends mysqli {
             unset($tableVal['table']);
             unset($tableVal['where']);
         }
-
         #separate fetch array on subarray for query generation
         foreach ($tableVal as $k => $v) $setVal[] = "`". $k . "`" . "=" . "'". $v . "'";
 
@@ -153,6 +156,9 @@ class actionMySQL extends mysqli {
             //$mysqli->close();
             // возвращаем посл ID
             return $mysqli->insert_id;
+        } else {
+            $this->addLog('update', $query, 0);
+            return null;
         }
     }
 
@@ -164,14 +170,14 @@ class actionMySQL extends mysqli {
         #generate query string with all parameter
         $query = "DELETE FROM " . $tableVal['table'] . " WHERE " . $tableVal['exp'];
 
-        #test print of ready query
-        //echo $query . "<br>";
-
         #print of results row
         if ($result = $mysqli->query($query)) {
             $this->addLog('delete', $query, $result);
             //$mysqli->close();
             return $result;
+        } else {
+            $this->addLog('delete', $query, 0);
+            return 0;
         }
     }
 

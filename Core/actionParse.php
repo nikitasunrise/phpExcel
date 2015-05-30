@@ -11,10 +11,10 @@ class actionParse {
      * @crsLst - list of sheets, contain Courses
      * @plnLst - list of sheets, contain Plan
      * @dsLst -  list of all Disciple
-     * @dcLst - list of Disciple-Competition
+     * @dcLst - list of Disciple-Competence
      * @udcLst - list of pair Ds-Cp
      */
-    private $docSrc, $cntList, $objExcel, $objReader;
+    private $docSrc, $cntList, $objExcel, $objReader, $hoursLst, $fileLog;
     private $nArr = [   1 => 'Lection',
         2 => 'Laboratory',
         3 => 'Practice',
@@ -25,10 +25,7 @@ class actionParse {
         8 => 'Examine',
         9 => 'Total',
         10 => 'TypeExamine'];
-    private $hoursLst;
-    protected $docSheets, $crsLst, $plnLst, $dsLst, $dcLst, $udcLst, $mainLst;
-
-    private $fileLog;
+    private $docSheets, $crsLst, $plnLst, $dsLst, $dcLst, $udcLst, $mainLst;
 
     public function __construct($document, $logFile) {
         include_once('../Classes/PHPExcel/IOFactory.php');
@@ -44,7 +41,7 @@ class actionParse {
         }
         try {
             if (!empty($document)) {
-                switch(pathinfo($document, PATHINFO_EXTENSION)) {
+                switch(pathinfo($document , PATHINFO_EXTENSION)) {
                     case 'xls':
                         $objR = PHPExcel_IOFactory::createReader('Excel5');
                         break;
@@ -55,13 +52,16 @@ class actionParse {
                         throw new PHPExcel_Reader_Exception;
                         break;
                 }
+
                 $objR->setReadDataOnly(true);
+
                 $objXl = $objR->load($document);
                 $cntList = $objXl->getSheetCount();
 
                 $this->cntList = $cntList;
                 $this->objReader = $objR;
                 $this->objExcel = $objXl;
+
                 $this->docSheets = $objXl->getSheetNames();
                 $this->loggingWork("Расширение документа", 1);
             }
@@ -70,12 +70,11 @@ class actionParse {
         }
     }
 
-    private function loggingWork($string, $status) {
+    private function loggingWork($inputStr, $status) {
         if(is_readable($this->fileLog)) {
             $h = fopen($this->fileLog, 'a');
             switch($status) {
                 case 0:
-                    # status empty
                     $st = '';
                     break;
                 case 1:
@@ -86,20 +85,13 @@ class actionParse {
                     break;
             }
             try {
-                $sS = "<p class='lg'>". $string. "... " . $st . "</p>";
+                $sS = "<p class='lg'>". $inputStr. "... " . $st . "</p>";
                 fwrite($h, $sS . "\r\n");
                 fclose($h);
             } catch (Exception $e) {
                 pprint($e);
             }
         }
-    }
-
-    /**
-     * @return count of worksheet
-     */
-    public function getCntList() {
-        return $this->cntList;
     }
 
     public function searchMainInformation() {
@@ -159,8 +151,10 @@ class actionParse {
             if (!empty($qual) && (!empty($prof)) && (!empty($lim))) {
                 $this->mainLst = ['qual' => $qual, 'limit' => $lim, 'profile' => $prof];
                 $this->loggingWork("Поиск основной информации", 1);
+                return 1;
             } else {
                 $this->loggingWork("Поиск основной информации", -1);
+                return 0;
             }
         }
     }
@@ -234,7 +228,6 @@ class actionParse {
             }
             // find the contain disciples
             if (isset($dnCol) && isset($dnRow)) {
-
                 $it = 3;
                 $objActSh->getCellByColumnAndRow($dnCol, $dnRow+$it) == '' ? $sign = -1 : $sign = 1;
                 $this->loggingWork("Наличие дисцилин", $sign);
@@ -304,7 +297,7 @@ class actionParse {
     /**
      * @return list ds-cpt
      */
-    public function searchCompetition() {
+    public function searchCompetence() {
         foreach ($this->plnLst as $num => $value) {
             $this->objExcel->setActiveSheetIndex($num);
             $objActSh = $this->objExcel->getActiveSheet();
@@ -327,13 +320,16 @@ class actionParse {
                 $j++;
                 preg_match($re3, $cVal, $match3);
                 preg_match($re4, $cVal,$match4);
+                // fix element:
                 if (!empty($match3)) {
                     array_push($match3, $j, $i);
                     $m3 = $match3;
+                    //pprint($m3);
                 }
                 if (!empty($match4)) {
                     array_push($match4, $j, $i);
                     $m4 = $match4;
+//                    pprint($m4);
                 }
             }
         }
@@ -353,7 +349,7 @@ class actionParse {
                 if ($dVal == $value) {
 //                    print ("Disciple: ".$dVal. " " .$jD."x".$iD."<br>");
                     $cVal = $objActSh->getCellByColumnAndRow($jC - 1, $iD - 1)->getValue();
-//                    print("Competition: ".$cVal." ".$jC."x".$iD."<br><br>");
+//                    print("Competence: ".$cVal." ".$jC."x".$iD."<br><br>");
                     $iD = $m3[count($m3) - 2];
                     $cVal = str_replace("\n", " ", $cVal);
                     $dcArr[$dVal] = $cVal;
@@ -368,50 +364,11 @@ class actionParse {
     }
 
     /**
-     *  function of parse array with ds-cpt
-     *  and implode this on two uniq part
-     *  one disciple - one competition
-     *
-     * unused...
-     */
-    public function splitDsCpt() {
-        if (isset($dcLts)) {
-            foreach($dcLts as $k => $val) {
-                $st = explode(" ", $val);
-                foreach($st as $k2 => $val2){
-                    //print($k .":". $val2);
-                    //echo("<br>");
-                }
-            }
-        }
-    }
-
-    public function getSelect($type = '') {
-        echo "<option>" . "gf" . "</option>";
-    }
-
-    /**
      * @return mixed
      */
-    public function getCrsLst()
+    public function getMainLst()
     {
-        return $this->crsLst;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDocSheets()
-    {
-        return $this->docSheets;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDcLst()
-    {
-        return $this->dcLst;
+        return $this->mainLst;
     }
 
     /**
@@ -425,8 +382,17 @@ class actionParse {
     /**
      * @return mixed
      */
-    public function getMainLst()
+    public function getDsLst()
     {
-        return $this->mainLst;
-    }//
+        return $this->dsLst;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDcLst()
+    {
+        return $this->dcLst;
+    }
+
 }

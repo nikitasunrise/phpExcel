@@ -1,12 +1,17 @@
 <script type="text/javascript">
-    function rIframe(){
-        var iframe = document.getElementById('logFrm');
-        iframe.src = iframe.src;
+    function reloadFrame(block){
+        var frm = document.getElementById('logFrm');
+        frm.src = frm.src;
     }
 
     function show(state){
-        document.getElementById('wB').style.display = state;
-        document.getElementById('bckB').style.display = state;
+        if(state == true) {
+            document.getElementById('wB').style.display = 'block';
+            document.getElementById('bckB').style.display = 'block';
+        } else if(state == false) {
+            document.getElementById('wB').style.display = 'none';
+            document.getElementById('bckB').style.display = 'none';
+        }
     }
 
     function checkField() {
@@ -15,10 +20,12 @@
         var cs = document.accOp.codeSt.value;
         var ss = document.accOp.specSt.value;
         var fs = document.accOp.hi.value;
+        var ys = document.accOp.yearSt.value;
 
-        ((cs.length  >= 6) && (cs.length <= 15)) ? fl++ : ev += "Код специальности. Длина некорректна! ";
-        ((ss.length  >= 15) && (ss.length <= 100)) ? fl++ : ev += "Название специальности. Длина некорректна! ";
-        if (fl == 2) {
+        ((cs.length  >= 6) && (cs.length <= 15)) ? fl++ : ev += "Код специальности - длина некорректна! ";
+        ((ss.length  >= 15) && (ss.length <= 100)) ? fl++ : ev += "Название специальности - длина некорректна! ";
+        (ys.length == 4) ? fl++ : ev += "Некорректный год!";
+        if (fl == 3) {
             alert("РУП успешно добален!");
             return true;
         } else {
@@ -27,51 +34,68 @@
             return false;
         }
     }
+
+    function checkLoad() {
+        var dF = window.frames.iFrm.dcs;
+        var hF = window.frames.iFrm.hrs;
+        var mF = window.frames.iFrm.main;
+
+        if (dF && hF && mF) {
+            show(true);
+        } else {
+            alert("Документ не был загружен!");
+        }
+    }
+
 </script>
+
 <h4><b>I.</b> Выберите файл для загрузки</h4>
-<iframe id="iFrm" name="iFrm" style="display: none">
+<iframe id="iFrm" name="iFrm" style="display: none" width="800px">
 </iframe>
-<form id="loadForm" action="Core/loadPlan.php" method="post" enctype="multipart/form-data" target="iFrm">
+
+<form id="loadForm" action="Core/loadPlan.php" method="post" enctype="multipart/form-data" target="iFrm" onsubmit="">
     <input type="file" class="btnBl" name="filename">
     <button type="submit" class="btnBl col3" onclick="">Загрузить</button>
 </form>
 <label id="fInf"></label>
 <br>
-
-<button class="rightB btnGr col7" onclick="rIframe()"><i class="fa fa-refresh fa-3x"></i></button>
+<button class="rightB btnGr col7" onclick="reloadFrame(this)"><i class="fa fa-refresh fa-3x"></i></button>
 <div id="logPln">
     <iframe id="logFrm" name="logFrm" src='input_log.html' onclick=""></iframe>
 </div>
 <br>
 <h4><b>II.</b>Подтвердите совершенные операции</h4>
 <span style="display: inline-flex">
-<button type="" class="btnBl col2" onclick="show('block')">Подтвердить</button>
-<form id="cncOp" action="Core/goBack.php" method="post">
+<button type="button" class="btnBl col2" onclick="checkLoad()">Подтвердить</button>
+<form id="cncOp" action="load" method="post">
     <input id="hi2" type="hidden" value="clear" name="hi">
     <button type="submit" class="btnBl col2">Отменить</button>
 </form></span>
 
 <div id="bckB">
     <div id="wB">
-        <form id="accOp" action="Core/goBack.php" method="post" name="accOp" onsubmit="return checkField();">
+        <form id="accOp" action="load" method="post" name="accOp" onsubmit="return checkField();">
             <h4>Выберите и заполните необходимые поля</h4>
             <h5>Форма обучения </h5>
             <select name="formSt">
                 <option value="Очная">Очная</option>
                 <option value="Заочная">Заочная</option>
+                <option value="Очно-Заочная">Очно-Заочная</option>
             </select>
             <br>
-
-            <h5>Код специальности</h5>
+            <h5>Код специальности:</h5>
             <input type="text" name="codeSt">
             <br>
-            <h5>Наименование специальности</h5>
+            <h5>Наименование специальности:</h5>
             <input type="text" name="specSt">
+            <br>
+            <h5>Год:</h5>
+            <input type="text" name="yearSt">
             <br><br>
             <button  type="submit" class="btnBl col3 clear">Подтвердить</button>
             <input id="hi1" type="hidden" value="accept" name="hi">
         </form>
-        <button class="btnBl col3 clear" onclick="show('none')">Вернуться</button>
+        <button class="btnBl col3 clear" onclick="show(false)">Вернуться</button>
 
     </div>
 </div>

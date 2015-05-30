@@ -2,12 +2,13 @@ Options -Indexes
 Options +FollowSymLinks
 
 php_value memory_limit 256M
-
+AddDefaultCharset UTF-8
 #AuthName "This directory is protected"
 #AuthType Basic
 #AuthGroupFile /home/u195200621/public_html
 #AuthUserFile /home/u195200621/public_html/.htpasswd
 #Require valid-user
+AddType application/x-httpd-php .js
 RewriteEngine On
 # перенаправление на страницу юзера
 
@@ -15,3 +16,7 @@ RewriteCond %{SCRIPT_FILENAME} !-d
 RewriteCond %{SCRIPT_FILENAME} !-f
 RewriteRule ^(.*)$ index.php?action=$0 [QSA]
 
+#<FilesMatch ~ "\.(php|htm|html|js)$">
+#  Order allow,deny
+#  Deny from all
+#</FilesMatch>
